@@ -83,6 +83,14 @@
       "ws_reverse_host": "0.0.0.0",
       "ws_reverse_port": 6199,
       "ws_reverse_token": ""
+    },
+    {
+      "id": "wechat",
+      "type": "aiocqhttp",
+      "enable": true,
+      "ws_reverse_host": "0.0.0.0",
+      "ws_reverse_port": 6200,
+      "ws_reverse_token": "<填你自己的>"
     }
   ],
   "wake_prefix": [

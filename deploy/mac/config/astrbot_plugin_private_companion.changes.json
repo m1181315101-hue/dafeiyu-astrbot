@@ -1,4 +1,5 @@
 {
+  "basic_config.bot_name": "大肥鱼",
   "basic_config.enable_daily_token_soft_limit": false,
   "basic_config.target_user_ids": [
     "<主人小号QQ>"
@@ -9,23 +10,42 @@
   "model_assignment_config.COMPLEX_REASONING_PROVIDER_ID": "deepseek/deepseek-flash",
   "model_assignment_config.CREATIVE_MODEL_PROVIDER_ID": "deepseek/deepseek-flash",
   "model_assignment_config.PLUGIN_VISION_PROVIDER_ID": "deepseek/deepseek-flash",
+  "proactive_reach_config.proactive_intensity_preset": "balanced",
+  "proactive_reach_config.max_daily_messages": 4,
   "message_debounce_config.private_image_self_recognition_hint": "蓝色系小鲸鱼娘：圆脸大眼睛、深蓝渐变浅蓝长卷发、头顶呆毛、深蓝女仆小裙配白围裙、蓝色椭圆胸针、鲸鱼尾巴，约两个半头身",
+  "private_followup_config.group_conversation_followup_max_turns": 3,
   "private_followup_config.min_interval_minutes": 30,
+  "private_followup_config.enable_proactive_burst": true,
+  "timer_config.enable_proactive_quote_trigger_message": true,
   "news_config.enable_news_integration": true,
   "web_exploration_config.enable_web_exploration": true,
   "web_exploration_config.enable_news_daily_hot_read": false,
   "group_observation_config.group_whitelist_ids": [
-    "<允许的群号>"
+    "<允许的群号>",
+    "<微信群的 OneBot 号>"
   ],
+  "group_observation_config.enable_group_image_understanding": true,
+  "group_observation_config.enable_group_social_context": true,
   "group_wakeup_config.group_wakeup_direct_words": [
-    "大肥鱼"
+    "大肥鱼",
+    "肥鱼",
+    "大飞鱼"
   ],
   "group_wakeup_config.group_wakeup_owner_direct_words": [
     "大肥鱼"
   ],
+  "group_wakeup_config.group_wakeup_interest_probability": 30,
   "group_wakeup_config.enable_group_wakeup_cold_group": true,
+  "group_interject_config.enable_group_interjection": true,
+  "group_interject_config.group_repeat_trigger_threshold": 3,
+  "group_interject_config.group_interject_min_interval_minutes": 60,
+  "group_interject_config.group_interject_max_daily": 6,
   "group_interject_config.enable_group_interjection_feedback": false,
+  "screen_action_config.enable_screen_glance_action": true,
+  "voice_action_config.enable_voice_action": true,
   "voice_action_config.enable_tts_enhancement": true,
+  "voice_action_config.tts_provider_id_zh": "edge_tts",
+  "experimental_motivation_config.enable_reaction_expression_experiment": true,
   "experimental_motivation_config.enable_experimental_motivation_model": true,
   "legacy_compat_config.enable_segmented_proactive_reply": true
 }
