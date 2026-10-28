@@ -59,7 +59,7 @@ deploy/incident_20261020/              ← 🧹 旧测试记录隔离脚本与�
 deploy/mac/                            ← 🍎 Mac 本机版 Compose（含网易云接口容器）
 deploy/mac/config/                     ← 🍎 Mac 本机版插件清单 + 改过的配置项（复刻用）
 deploy/cover/                          ← 🎤 翻唱 / 变声服务（Demucs + RVC，跑在 Mac 本机）
-wechat-connector/                      ← 💬 微信连接器：用微信小号接 AstrBot（OneBot v11；能发文字、图片、表情包、语音文件）
+wechat-connector/                      ← 💬 微信连接器：用微信小号接 AstrBot（OneBot v11；能发文字、图片、表情包、原生语音条）
 CHANGELOG.md                           ← 更新日志
 deploy/                                ← 云服务器部署套件（Docker Compose + 补丁 + 备份 + 运维笔记）
 tests/                                 ← 回归测试（插件文本规则 / 路径解析）
