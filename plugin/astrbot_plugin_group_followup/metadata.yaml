@@ -1,0 +1,7 @@
+name: astrbot_plugin_group_followup
+display_name: 群聊续聊
+desc: 谁 @ 了她，之后几分钟里这个人不用再 @ 也能接着聊；说再见、转去跟别人说话、超时或她判断不是跟她说的就结束
+version: v1.0.0
+author: dafeiyu-local
+support_platforms:
+  - aiocqhttp

@@ -2,6 +2,17 @@
 
 > 每一次值得说的进化都会记在这里。
 
+## 2026-10-27 · Mac 本机版：续聊、语音、唱歌
+
+- 新增 `docs/本机部署-macOS.md` 和 `deploy/mac/compose.yaml`：在 Mac 的 Docker Desktop 上跑 AstrBot + NapCat，数据目录用相对路径，端口只绑本机。
+- 新插件 `astrbot_plugin_group_followup`：群里谁 @ 了她，接下来 3 分钟内这个人不用 @ 也能接着聊；对方告别、@ 别人、她判断不是跟她说的、或连续 8 条后结束。
+- 新插件 `astrbot_plugin_private_only`：私聊都回，群里只回 `config.json` 列出的群。
+- 新插件 `astrbot_plugin_voice`：`tts_speak` 工具，有人要语音才发，那一轮只发语音不发文字；edge-tts 念完送翻唱服务用 RVC 换成她的声音，服务没开时退回原声；统一响度到约 -12 LUFS。修复 AstrBot 4.29 自带 edge_tts 提供商改 User-Agent 导致微软 403。
+- 新插件 `astrbot_plugin_sing` + `deploy/cover/` 翻唱服务：找歌（链接 → 本地曲库 → 网易云 → AnySearch 搜 B 站）→ 截最响的 40 秒 → Demucs 分人声 → RVC 换声（整八度自动升降）→ 人声 +3dB、伴奏 −7dB 混回 → 语音条。合成前修正 RMVPE 的八度误判和短断档，减少破音。
+- 新增 `persona/大肥鱼-人格-本机版.md`：按行拆成两三条回复、30 个常用 QQ 表情、挂在主人自己的号上时替主人接待和护着主人；主人称呼是占位符，导入前自己替换。
+- 仓库不带声音模型、网易云登录态和任何歌曲文件；插件和服务只提交 `config.example.json`，真实 `config.json` 已加入 `.gitignore`。
+- 验证：只在一台 Mac（M4，macOS 27）上实机跑过；没有加自动化测试。
+
 ## 2026-10-26 · B站活动承诺与开机自启修复
 
 - 人格补充：主人叫去逛 B 站、问去了没有，或自己要马上动身时，必须先在同一轮调用 `df_bili_navigate` / `df_bili_read` / `df_bili_watch` 等实际工具；没有工具调用不许说“这就去/马上就去/去了去了”，只能如实说“还没开始”。修复“只承诺、不执行”的情况。

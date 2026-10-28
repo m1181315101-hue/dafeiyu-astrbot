@@ -4,3 +4,18 @@ __pycache__/
 .venv/
 *.bak
 .serena/
+
+# 本机版：插件和翻唱服务的真实配置含 token，只提交 config.example.json
+plugin/*/config.json
+deploy/cover/config.json
+# 翻唱服务的运行产物：网易云登录态、声音模型（多半禁止再分发）、下载和生成的歌
+deploy/cover/ncm_cookie.txt
+deploy/cover/ncm-login-qr.png
+deploy/cover/models/
+deploy/cover/songs/
+deploy/cover/cache/
+deploy/cover/server.pid
+# 照 deploy/mac/compose.yaml 原地启动时生成的数据目录
+deploy/mac/astrbot/
+deploy/mac/napcat/
+deploy/mac/ncm-api/

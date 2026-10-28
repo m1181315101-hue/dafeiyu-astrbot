@@ -1,0 +1,7 @@
+name: astrbot_plugin_private_only
+display_name: 只回私聊
+desc: 群消息不回（config.json 里列出的群除外），私聊照常
+version: v1.1.0
+author: dafeiyu-local
+support_platforms:
+  - aiocqhttp

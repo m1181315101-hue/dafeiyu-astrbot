@@ -1,0 +1,56 @@
+# 大肥鱼 · 本机（macOS / Docker Desktop）版，说明见 docs/本机部署-macOS.md
+# 改自 deploy/compose.yaml：
+#   - 数据目录改为本目录下的相对路径（原版是 /opt/dafeiyu/...）
+#   - 去掉两条百炼语音补丁的 bind-mount（本机版语音走 edge-tts + RVC，见 astrbot_plugin_voice）
+#   - 直接用官方 AstrBot 镜像；edge-tts 另装到 data/site-packages，imageio-ffmpeg 视频识别才用得到
+#   - 多一个 ncm-api（网易云接口，cover profile，翻唱服务用）
+# 用法：复制到工作目录，在那里执行 docker compose up -d
+services:
+  astrbot:
+    image: soulter/astrbot:v4.29.0
+    container_name: astrbot
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6185:6185"  # AstrBot 面板，只绑本机
+    volumes:
+      - ./astrbot/data:/AstrBot/data
+    environment:
+      - TZ=Asia/Shanghai
+
+  napcat:
+    image: mlikiowa/napcat-docker:v4.18.37
+    container_name: napcat
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6099:6099"  # NapCat WebUI，只绑本机
+    volumes:
+      - ./napcat/config:/app/napcat/config
+      - ./napcat/qq:/app/.config/QQ
+    environment:
+      - TZ=Asia/Shanghai
+      # 首次启动时用镜像自带的 astrbot 模板生成 onebot11.json：反向 WS 连 ws://astrbot:6199/ws
+      - MODE=astrbot
+      # 扫码登录一次之后，可把挂她的 QQ 号填进下面两行再 docker restart napcat，以后重启免扫码
+      # - ACCOUNT=QQ号
+      # - NAPCAT_QUICK_ACCOUNT=QQ号
+
+  # 网易云接口：社区逆向的 api-enhanced（MIT），只给 cover/ 翻唱服务找歌用。
+  # 放在 cover profile 里：docker compose up/start 不会带它，随 cover/start.sh、stop.sh 启停。
+  # 登录态（cookie）不放这里，在 cover/ncm_cookie.txt，由翻唱服务每次请求时带上。
+  ncm-api:
+    image: node:22-alpine
+    container_name: ncm-api
+    profiles: ["cover"]
+    ports:
+      - "127.0.0.1:3000:3000"  # 只绑本机
+    working_dir: /app
+    volumes:
+      - ./ncm-api:/app
+    environment:
+      - TZ=Asia/Shanghai
+      # 不用“灰色歌曲从其他平台补全”的解锁功能
+      - ENABLE_GENERAL_UNBLOCK=false
+    command: >
+      sh -c "[ -f node_modules/@neteasecloudmusicapienhanced/api/app.js ]
+      || npm install --omit=dev --no-audit --no-fund @neteasecloudmusicapienhanced/api@4.41.1;
+      node node_modules/@neteasecloudmusicapienhanced/api/app.js"

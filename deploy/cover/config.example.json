@@ -1,0 +1,19 @@
+{
+  "port": 8790,
+  "token": "",
+  "model": "",
+  "f0_up_key": "auto",
+  "target_f0_hz": 330,
+  "clip_seconds": 40,
+  "max_song_seconds": 600,
+  "index_rate": 0.5,
+  "protect": 0.33,
+  "vocal_gain_db": 3,
+  "rvc_version": "v1",
+  "yt_dlp": "/opt/homebrew/bin/yt-dlp",
+  "accomp_gain_db": -7,
+  "loudness_lufs": -11,
+  "ncm_api": "http://127.0.0.1:3000",
+  "f0_cleanup": true,
+  "f0_fill_gap_frames": 4
+}

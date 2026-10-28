@@ -1,0 +1,8 @@
+{
+  "tts_provider_id": "edge_tts",
+  "max_chars": 200,
+  "rvc_url": "http://host.docker.internal:8790",
+  "rvc_token": "",
+  "rvc_timeout_seconds": 30,
+  "loudness_lufs": -11
+}

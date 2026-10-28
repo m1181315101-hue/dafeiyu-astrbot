@@ -35,7 +35,12 @@
 plugin/astrbot_plugin_face_convert/   ← 核心插件（AstrBot 插件，直接可装）
 plugin/astrbot_plugin_schedule_awareness/ ← 🧭 把她的定时任务实时注入系统提示词
 plugin/astrbot_plugin_bili_activity/   ← 自主浏览、持续目标、截图、来源笔记与研究方法
+plugin/astrbot_plugin_group_followup/  ← 💬 群聊续聊：@ 一次之后同一个人不用每句都 @
+plugin/astrbot_plugin_private_only/    ← 🔒 私聊都回，群里只回指定的群
+plugin/astrbot_plugin_voice/           ← 🔊 有人要语音才发：edge-tts 念 + RVC 换成她的声音
+plugin/astrbot_plugin_sing/            ← 🎤 唱歌：调本机翻唱服务，发来一段副歌语音条
 persona/大肥鱼-人格.md                 ← 人格提示词（可直接导入 AstrBot）
+persona/大肥鱼-人格-本机版.md          ← 挂在主人自己号上的变体（多条回复 / 表情 / 护主人）
 persona/课程记忆-模板.md               ← "让她自己悟"的教学记忆模板
 docs/部署指南.md                       ← 从零搭建的路线图
 docs/导入指南.md                       ← 人格 / 课程记忆 / 音色 手把手导入教程
@@ -44,12 +49,15 @@ docs/生图玩法.md                       ← 生图与自拍：模型选择 / 
 docs/知识库笔记.md                     ← 知识库接线：功能手册 + 热梗词典怎么搭
 docs/知识库-热梗词典示例.md            ← 现成的热梗词典（含接法），可直接导入
 docs/踩坑合集.md                       ← ⭐ 最有价值的部分：所有坑与解法
+docs/本机部署-macOS.md                 ← 🍎 Mac 本机版：Docker Desktop + edge-tts + RVC 翻唱
 deploy/                                ← ☁️ 云上安家套件（Docker Compose / 备份 / 嵌入切换）
 deploy/phone_mcp/                      ← 📱 模拟器接入（PhoneMCP / 反向隧道 / 启停与开机自启）
 deploy/ops_mcp/                        ← 🛠️ 云端运维 MCP（health/logs/qr + 受控 restart/heal_ws）
 deploy/browser_use/                    ← 🌐 只读浏览器任务（Browser Use MCP / 反向隧道 / 启停）
 deploy/bili_activity/                  ← B站服务、活动开关、升级及验证说明
 deploy/incident_20261020/              ← 🧹 旧测试记录隔离脚本与复盘
+deploy/mac/                            ← 🍎 Mac 本机版 Compose（含网易云接口容器）
+deploy/cover/                          ← 🎤 翻唱 / 变声服务（Demucs + RVC，跑在 Mac 本机）
 CHANGELOG.md                           ← 更新日志
 deploy/                                ← 云服务器部署套件（Docker Compose + 补丁 + 备份 + 运维笔记）
 tests/                                 ← 回归测试（插件文本规则 / 路径解析）
@@ -66,6 +74,7 @@ assets/voice-demo/                     ← 音色样本与复刻链路说明
 4. 想要语音条 / 记忆 / 自定义音色？照 `docs/导入指南.md` 继续
 5. 重启，开聊 🎉
 6. 想 7×24 挂云端？看 `deploy/README.md`（Docker 一键编排，已实弹演练）
+7. 只想在自己的 Mac 上跑、还想让她唱歌？看 `docs/本机部署-macOS.md`
 
 ## 🔌 插件做了什么
 

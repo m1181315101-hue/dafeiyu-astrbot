@@ -1,0 +1,7 @@
+name: astrbot_plugin_voice
+display_name: 发语音
+desc: 给她一个 tts_speak 工具：有人要她发语音时，用 TTS 念出来、发成 QQ 语音条
+version: v1.0.0
+author: dafeiyu-local
+support_platforms:
+  - aiocqhttp

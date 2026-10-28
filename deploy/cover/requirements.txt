@@ -1,0 +1,16 @@
+# 翻唱 / 变声服务（deploy/cover/server.py），Python 3.10，在 macOS Apple Silicon 上验证过
+# 安装：uv venv -p 3.10 .venv && uv pip install -p .venv/bin/python -r requirements.txt
+# 另需系统里有 ffmpeg 和 yt-dlp（brew install ffmpeg yt-dlp）
+torch==2.14.1
+torchaudio==2.11.0
+demucs==4.1.0
+rvc-python==0.1.5
+soundfile==0.14.0
+numpy==1.23.5
+librosa==0.11.0
+fastapi==0.162.0
+uvicorn==0.54.0
+# SciPy 1.15 在 macOS 27 上加载失败，钉在 1.14.1
+scipy==1.14.1
+# pyworld 还在用 pkg_resources，setuptools 81 起移除了它
+setuptools<81
