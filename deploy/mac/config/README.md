@@ -38,7 +38,7 @@
   - `target_user_ids`（主用户）填 `<主人小号QQ>`，要和人格里的 `{主人小号QQ}` 是同一个号；接了微信再加上 `<主人微信ID>`。只写在人格里不够：不在这个名单里的人，陪伴插件会在提示里标「该 ID 不是主要用户」（私聊里还会叮嘱别把人格里的主人套到对方身上），比人格更具体，她就不认了。
   - 群聊：主动插话打开（每群每天最多 6 次、间隔至少 60 分钟），强唤醒词「大肥鱼、肥鱼、大飞鱼」，兴趣唤醒 30%，回完后不用 @ 最多再接 3 轮。
   - `basic_config.enable_proactive_only_mode`（仅保留主动能力）要**保持关闭**（默认值，所以导出里没有它）：开着的话群聊的复读、唤醒、续接、插话和私聊里的语音都会停掉。
-  - `experimental_motivation_config.enable_reaction_expression_experiment`（表情表达实验）要**保持关闭**（默认值，所以导出里没有它）：开着时表情包插件连着几个小时一张图也没挑出来，关掉后又开始出图。
+  - `experimental_motivation_config.enable_reaction_expression_experiment`（表情表达实验）关着（默认值，所以导出里没有它）。曾怀疑它让表情包插件不出图，关掉后并没有好转（见更新日志），原因还在查。
   - `photo_action_config` 里把她的自拍设成人格参考图（`photo_reference_library` 一行是「图片路径 || 外观说明」），以后接上生图后端时用来保持长相。图片本身不在仓库里，换成你自己的。
 - 其他第三方插件（表情包、`memory_companion`）的配置都是默认值。
 - 本仓库自己的插件：各插件目录下的 `config.example.json` 复制成 `config.json`。`astrbot_plugin_selfie` 的照片放进 `data/plugin_data/astrbot_plugin_selfie/photos/`。
