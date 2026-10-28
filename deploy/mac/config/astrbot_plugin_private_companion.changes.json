@@ -17,6 +17,8 @@
   "private_followup_config.group_conversation_followup_max_turns": 3,
   "private_followup_config.min_interval_minutes": 30,
   "private_followup_config.enable_proactive_burst": true,
+  "private_followup_config.group_air_guard_window_seconds": 120,
+  "private_followup_config.group_air_guard_max_bot_replies": 6,
   "timer_config.enable_proactive_quote_trigger_message": true,
   "news_config.enable_news_integration": true,
   "web_exploration_config.enable_web_exploration": true,
