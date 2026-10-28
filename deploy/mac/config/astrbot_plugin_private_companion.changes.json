@@ -46,7 +46,7 @@
   "group_interject_config.enable_group_interjection_feedback": false,
   "screen_action_config.enable_screen_glance_action": true,
   "voice_action_config.enable_voice_action": true,
-  "voice_action_config.enable_tts_enhancement": true,
+  "voice_action_config.enable_tts_enhancement": false,
   "voice_action_config.tts_provider_id_zh": "edge_tts",
   "photo_action_config.enable_photo_reference_image": true,
   "photo_action_config.photo_persona_reference_image_path": "/AstrBot/data/plugin_data/astrbot_plugin_private_companion/persona_reference/<她的自拍>.jpg",

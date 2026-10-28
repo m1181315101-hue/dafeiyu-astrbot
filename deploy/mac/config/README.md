@@ -41,6 +41,7 @@
   - 读空气防互刷放宽到 120 秒内 6 条（默认 180 秒内 3 条）：默认值下她在群里回过两条，别人再喊「肥鱼」就要先过一个小模型判断（不看人格），常被判成沉默；回满三条后一律不回。
   - 回得快一点：群里热闹时的合并等待 8→3 秒（`group_high_intensity_merge_seconds`）、只喊一两个字时等补话 15→6 秒（`group_wakeup_short_text_wait_seconds`）、只发图片或表情包时等补话 8→4 秒（`image_message_debounce_seconds`）。按日志拆过：微信上从收到消息到发出回复中位约 7 秒，大头是这几种等待，不是连接器。代价是热闹时合并得少、可能多回几条。
   - 群聊高强度收口（`enable_group_high_intensity_mode`）关掉了：开着时一分钟内被叫 3 次就把后面的合并成一轮处理，实测有写好的回复没发出去、合并缓冲里的消息也没再出来。关掉后每个叫她的人单独处理，热闹时回得多一些。
+  - 陪伴插件的 TTS 增强（`voice_action_config.enable_tts_enhancement`）关掉了：它每轮按 25% 的概率接管语音，接管那一轮会把回复类型从「模型生成」改成「普通结果」（防止 AstrBot 自带 TTS 再处理一遍），可 AstrBot 的分段回复只对「模型生成」的回复生效，于是约三成回复几行字挤成一条发。它用的还是 edge_tts（晓伊）的声音，一天只真发出过 6 条语音；要语音时走本仓库的 `tts_speak`（NORA 的声音），不受影响。
   - `basic_config.enable_proactive_only_mode`（仅保留主动能力）要**保持关闭**（默认值，所以导出里没有它）：开着的话群聊的复读、唤醒、续接、插话和私聊里的语音都会停掉。
   - `experimental_motivation_config.enable_reaction_expression_experiment`（表情表达实验）关着（默认值，所以导出里没有它）。
   - 陪伴插件自带的 `pc_find_reaction_image`（找反应图）工具要在 AstrBot 面板「函数工具」里**停用**（存在全局偏好 `inactivated_llm_tools` 里）。它用的是陪伴插件自己的素材库，没往里导图时是空的；可它的说明会鼓励模型「素材库可能是空的也可以试试」，于是有人要表情包时，她大多去调这个工具，拿到「素材库为空」，图就没了，表情包插件根本轮不到。以后往陪伴插件的素材库导了图再打开。
