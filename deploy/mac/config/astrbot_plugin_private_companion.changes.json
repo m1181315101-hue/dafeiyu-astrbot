@@ -54,5 +54,8 @@
     "/AstrBot/data/plugin_data/astrbot_plugin_private_companion/persona_reference/<她的自拍>.jpg || <这张图里她的外观说明>"
   ],
   "experimental_motivation_config.enable_experimental_motivation_model": true,
-  "legacy_compat_config.enable_segmented_proactive_reply": true
+  "legacy_compat_config.enable_segmented_proactive_reply": true,
+  "message_debounce_config.image_message_debounce_seconds": 4.0,
+  "group_wakeup_config.group_wakeup_short_text_wait_seconds": 6.0,
+  "group_high_intensity_config.group_high_intensity_merge_seconds": 3
 }
