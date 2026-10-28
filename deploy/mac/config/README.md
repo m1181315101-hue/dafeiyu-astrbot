@@ -35,7 +35,7 @@
   `platform` 里的 `wechat` 是微信连接器用的第二个 OneBot v11 平台（反向 WS 端口 6200），见 [`wechat-connector/README.md`](../../../wechat-connector/README.md)。
 - [`astrbot_plugin_private_companion.changes.json`](astrbot_plugin_private_companion.changes.json)：陪伴插件里改过的项，键名是「分组.配置项」，在陪伴面板或插件配置页里找同名项改。
   - 没导出的：插件根据人格自动起草的三段提示词（`life_schedule_config` 里的日程人设、世界观、用户与关系）。导入人格后让插件重新起草，再检查里面和主人身份有关的句子：起草时如果用的是旧人格，会写成「和她说话的都不是主人」，要改成按 `<主人小号QQ>` 认主人。接了微信的话还要补上微信：活动场景写「QQ 和微信」，微信上按 `<主人微信ID>`（连接器给主人微信的 OneBot 号）认主人。
-  - `target_user_ids`（主用户）填 `<主人小号QQ>`，要和人格里的 `{主人小号QQ}` 是同一个号。
+  - `target_user_ids`（主用户）填 `<主人小号QQ>`，要和人格里的 `{主人小号QQ}` 是同一个号；接了微信再加上 `<主人微信ID>`。只写在人格里不够：不在这个名单里的人，陪伴插件会在提示里标「该 ID 不是主要用户」（私聊里还会叮嘱别把人格里的主人套到对方身上），比人格更具体，她就不认了。
   - 群聊：主动插话打开（每群每天最多 6 次、间隔至少 60 分钟），强唤醒词「大肥鱼、肥鱼、大飞鱼」，兴趣唤醒 30%，回完后不用 @ 最多再接 3 轮。
   - `basic_config.enable_proactive_only_mode`（仅保留主动能力）要**保持关闭**（默认值，所以导出里没有它）：开着的话群聊的复读、唤醒、续接、插话和私聊里的语音都会停掉。
   - `experimental_motivation_config.enable_reaction_expression_experiment`（表情表达实验）要**保持关闭**（默认值，所以导出里没有它）：开着时表情包插件连着几个小时一张图也没挑出来，关掉后又开始出图。

@@ -2,7 +2,8 @@
   "basic_config.bot_name": "大肥鱼",
   "basic_config.enable_daily_token_soft_limit": false,
   "basic_config.target_user_ids": [
-    "<主人小号QQ>"
+    "<主人小号QQ>",
+    "<主人微信ID>"
   ],
   "provider_config_mode": "quick",
   "model_assignment_config.enable_llm_streaming": true,
