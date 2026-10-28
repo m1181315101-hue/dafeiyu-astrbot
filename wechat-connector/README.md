@@ -1,5 +1,7 @@
 # 微信连接器（WeChat → OneBot v11）
 
+> **这个目录已经拆成独立仓库，以后以它为准：[m1181315101-hue/astrbot-mac-wechat-connector](https://github.com/m1181315101-hue/astrbot-mac-wechat-connector)。** 新功能和修复都在那边做，部署也按那边的 README；这里只保留拆分时（连接器 0.5.0）的一份副本，不再单独更新。
+
 让 AstrBot 用**一个微信小号**收发微信消息。它和 NapCat 接 QQ 的方式一样：对 AstrBot 来说，就是又多了一个 OneBot v11（aiocqhttp）平台。
 
 微信那边跑的是**官方 Linux 版微信**，装在 Docker 容器里。连接器不改微信客户端，也不碰微信的网络协议：

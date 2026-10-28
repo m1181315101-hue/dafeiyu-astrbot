@@ -2,6 +2,10 @@
 
 > 每一次值得说的进化都会记在这里。
 
+## 2026-10-28 · 微信连接器拆成独立仓库
+
+- 连接器以后以独立仓库 [astrbot-mac-wechat-connector](https://github.com/m1181315101-hue/astrbot-mac-wechat-connector) 为准（保留了原来 8 个提交的历史，补了独立部署用的 compose、`.env` 示例和平台提示插件）。本仓库的 `wechat-connector/` 留作拆分时（0.5.0）的副本，README 顶部写了指向，不再单独更新。
+
 ## 2026-10-28 · 群里喊「肥鱼」更容易叫到她
 
 - 「肥鱼」本来就是陪伴插件的强唤醒词，能命中；但她在群里 3 分钟内回过两条以后，陪伴插件的「读空气防互刷」会先让一个小模型判断该不该接（判断时不看人格），常被判成沉默，回满三条后一律不回。本机版把它放宽到 120 秒内 6 条（`private_followup_config.group_air_guard_window_seconds` / `group_air_guard_max_bot_replies`），开关保留，几个机器人互刷时照样压得住。

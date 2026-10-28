@@ -61,7 +61,7 @@ deploy/incident_20261020/              ← 🧹 旧测试记录隔离脚本与�
 deploy/mac/                            ← 🍎 Mac 本机版 Compose（含网易云接口容器）
 deploy/mac/config/                     ← 🍎 Mac 本机版插件清单 + 改过的配置项（复刻用）
 deploy/cover/                          ← 🎤 翻唱 / 变声服务（Demucs + RVC，跑在 Mac 本机）
-wechat-connector/                      ← 💬 微信连接器：用微信小号接 AstrBot（OneBot v11；能发文字、图片、表情包、原生语音条）
+wechat-connector/                      ← 💬 微信连接器：用微信小号接 AstrBot（OneBot v11；能发文字、图片、表情包、原生语音条），已拆成独立仓库 astrbot-mac-wechat-connector，这里是副本
 CHANGELOG.md                           ← 更新日志
 deploy/                                ← 云服务器部署套件（Docker Compose + 补丁 + 备份 + 运维笔记）
 tests/                                 ← 回归测试（插件文本规则 / 路径解析）
@@ -79,7 +79,7 @@ assets/voice-demo/                     ← 音色样本与复刻链路说明
 5. 重启，开聊 🎉
 6. 想 7×24 挂云端？看 `deploy/README.md`（Docker 一键编排，已实弹演练）
 7. 只想在自己的 Mac 上跑、还想让她唱歌？看 `docs/本机部署-macOS.md`
-8. 想让她也上微信？看 `wechat-connector/README.md`（只用小号，先读里面的风险说明）
+8. 想让她也上微信？看独立仓库 [astrbot-mac-wechat-connector](https://github.com/m1181315101-hue/astrbot-mac-wechat-connector)（只用小号，先读里面的风险说明；本仓库的 `wechat-connector/` 是拆分时的副本，不再更新）
 
 ## 🔌 插件做了什么
 
