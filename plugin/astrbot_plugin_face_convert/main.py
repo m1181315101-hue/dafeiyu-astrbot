@@ -47,6 +47,8 @@ DEFAULT_CONFIG = {
     "asr_timeout_s": 60,
     "max_concurrent_media": 1,
     "media_queue_timeout_s": 10,
+    # 这些平台（AstrBot 里的平台 ID）不转 QQ 表情段，改成该平台认的「[名字]」文字（目前只有微信）
+    "text_emoji_platforms": ["wechat"],
 }
 
 
@@ -166,6 +168,11 @@ class FaceConvertPlugin(Star):
         # 手工优先级：通称覆盖
         self.id2name[277] = "旺柴"
         self.id2name[179] = "doge"
+        # 微信的表情是消息里的「[名字]」文字，只认自己那套名字；QQ 独有的按 alias 换成意思相近的微信表情
+        with open(os.path.join(PLUGIN_DIR, "wx_emoji.json"), encoding="utf-8") as f:
+            wx = json.load(f)
+        self.wx_names: set[str] = set(wx["names"])
+        self.wx_alias: dict[str, str] = wx["alias"]
         self.pattern = re.compile(r"\[([^\[\]]{1,8})\]")
         # 轻量配置：同目录 config.json 可覆盖（缺省即默认值）
         self.cfg = DEFAULT_CONFIG.copy()
@@ -859,6 +866,10 @@ class FaceConvertPlugin(Star):
             result.chain = meta_chain or [Plain("……")]
             logger.info("[face_convert] 已清扫 meta 口癖/标点（结果关口）")
 
+        if event.get_platform_id() in self.cfg.get("text_emoji_platforms", []):
+            self._convert_text_emoji(event, result)
+            return
+
         new_chain = []
         changed = 0
         stripped = 0
@@ -916,6 +927,49 @@ class FaceConvertPlugin(Star):
                 + (f"，脱括号 {stripped} 个（字典不认的）" if stripped else "")
                 + (f"，冷却丢弃 {dropped_faces} 个" if dropped_faces else "")
             )
+
+    def _convert_text_emoji(self, event: AstrMessageEvent, result) -> None:
+        """微信这类平台：表情就是消息里的「[名字]」文字，对方客户端自己显示成表情，不认 QQ 表情段。
+        微信认的名字原样留着，QQ 独有的按对照表换成意思相近的微信表情，两边都没有的整个去掉
+        （留着就是一串字）；冷却和每条最多 2 个跟 QQ 一样。只改 Plain 里的字，不拆段"""
+        hist = self._face_history.setdefault(event.unified_msg_origin, [])
+        cutoff = time.time() - float(self.cfg.get("face_cooldown_minutes", 10)) * 60
+        hist[:] = [t for t in hist if t[1] >= cutoff]
+        counts = {"原样": 0, "换成微信表情": 0, "去掉不认的": 0, "冷却丢弃": 0}
+        per_msg = 0
+
+        def repl(m: re.Match) -> str:  # 去掉一个表情时连它前面的一个空格一起去掉
+            nonlocal per_msg
+            name = m.group(2).strip()
+            wx = name if name in self.wx_names else self.wx_alias.get(name)
+            if wx is None:
+                if name in self.face_map or re.fullmatch(r"[A-Za-z一-鿿]{1,6}", name):
+                    counts["去掉不认的"] += 1
+                    return ""
+                return m.group(0)  # 不像表情名的方括号不动
+            key = f"wx:{wx}"
+            if per_msg >= 2 or key in [t[0] for t in hist[-2:]]:
+                counts["冷却丢弃"] += 1
+                return ""
+            hist.append((key, time.time()))
+            del hist[:-8]
+            per_msg += 1
+            counts["原样" if wx == name else "换成微信表情"] += 1
+            return f"{m.group(1)}[{wx}]"
+
+        original = [c.text if isinstance(c, Plain) else None for c in result.chain]
+        new_chain = []
+        for comp in result.chain:
+            if isinstance(comp, Plain) and comp.text:
+                comp.text = re.sub(r"[ \t]+(?=\n|$)", "", re.sub(r"( ?)\[([^\[\]]{1,8})\]", repl, comp.text))
+                if not comp.text.strip():
+                    continue
+            new_chain.append(comp)
+        if not new_chain:  # 整条只有不认的表情：退回去掉方括号的字，别整条消失
+            new_chain = [Plain(self.pattern.sub(lambda m: m.group(1), t)) for t in original if t]
+        result.chain = new_chain
+        if any(counts.values()):
+            logger.info("[face_convert] 微信表情：" + "，".join(f"{k} {v}" for k, v in counts.items() if v))
 
     # ---------------- 语音开关（会话级，走 AstrBot 官方会话配置） ----------------
 
