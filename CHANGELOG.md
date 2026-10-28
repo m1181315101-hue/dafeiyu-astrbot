@@ -2,6 +2,14 @@
 
 > 每一次值得说的进化都会记在这里。
 
+## 2026-10-28 · 微信连接器：做成正式容器
+
+- 新增 `wechat-connector/docker/`：在 `wechat-selkies` 上装好工具，设 `PULSE_SERVER`；加 s6 一次性步骤 `init-wxvmic`（PulseAudio 之后、桌面之前建虚拟麦克风，微信一启动就认得到）和常驻服务 `svc-wechat-connector`（等配置、密钥、微信就绪后自动启动连接器，挂了会被拉起）。连接器代码装在镜像的 `/opt/wechat-connector`。
+- `deploy/mac/compose.yaml` 加 `wechat` 服务：放在 `wechat` profile 里只能点名启停；固定主机名，免得微信当成新设备要重新登录；网页桌面账号密码从 `.env` 读。
+- 界面驱动：网页桌面的推流如果跟着默认输入落到虚拟麦克风上，挪回桌面声音 `output.monitor`。
+- README 的部署部分改成：构建启动 → 扫码抓密钥 → 写配置 → AstrBot 加平台 → 启动检查。
+- 验证：本机从验证容器迁到正式容器，登录态和密钥原样带过去，微信自动登录、不用重新扫码；连接器自启并连上 AstrBot；文件传输助手自测文字、PNG、GIF、语音条都发出并确认；QQ 不受影响。
+
 ## 2026-10-28 · 微信连接器 0.3：原生语音条，修两处 bug
 
 - 语音改成**原生语音条**：Linux 微信 4.1.13 加了「发语音」。连接器点它开始录音，把音频播进 PulseAudio 虚拟麦克风（null sink + remap source，设成默认输入），再点「发送语音」，最后回查数据库确认。mp3 先用 lame 解码，超过 55 秒切成几条；录不了时整段退回 mp3 文件（`voice_mode`）。

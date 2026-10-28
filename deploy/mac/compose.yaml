@@ -54,3 +54,33 @@ services:
       sh -c "[ -f node_modules/@neteasecloudmusicapienhanced/api/app.js ]
       || npm install --omit=dev --no-audit --no-fund @neteasecloudmusicapienhanced/api@4.41.1;
       node node_modules/@neteasecloudmusicapienhanced/api/app.js"
+
+  # 微信小号 + 微信连接器（可选）：OneBot v11 连 AstrBot 的第二个平台（ws://astrbot:6200/ws，只在内部网络）
+  # 部署步骤、风险说明见 wechat-connector/README.md。放在 wechat profile 里，单独启停：
+  #   docker compose --profile wechat up -d --build wechat
+  # 网页桌面的账号密码写在同目录 .env：WECHAT_WEB_USER=…、WECHAT_WEB_PASSWORD=…（权限 600）
+  wechat:
+    build:
+      context: ./dafeiyu-astrbot/wechat-connector  # 本仓库 wechat-connector/ 的位置
+      dockerfile: docker/Dockerfile
+    image: dafeiyu/wechat-connector:local
+    container_name: wechat
+    hostname: wechat  # 固定主机名：换了的话微信可能当成新设备，要重新登录
+    profiles: ["wechat"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:3001"  # 网页桌面（扫码、查看），只绑本机
+    volumes:
+      - ./wechat:/config  # 微信登录态、聊天数据库、连接器的配置和密钥
+    cap_add:
+      - SYS_PTRACE  # 扫码登录时抓数据库密钥
+    environment:
+      - PUID=1000
+      - PGID=100
+      - TZ=Asia/Shanghai
+      - LC_ALL=zh_CN.UTF-8
+      - AUTO_START_WECHAT=true
+      - AUTO_START_QQ=false
+      - CUSTOM_USER=${WECHAT_WEB_USER}
+      - PASSWORD=${WECHAT_WEB_PASSWORD}
+    shm_size: 1gb
