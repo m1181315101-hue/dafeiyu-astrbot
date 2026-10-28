@@ -1,0 +1,92 @@
+{
+  "platform_settings": {
+    "segmented_reply": {
+      "enable": true,
+      "interval_method": "log",
+      "words_count_threshold": 240,
+      "regex": "```.*?```|[^\\n]+",
+      "content_cleanup_rule": "。+\\s*$"
+    }
+  },
+  "provider_sources": [
+    {
+      "provider": "deepseek",
+      "type": "openai_chat_completion",
+      "provider_type": "chat_completion",
+      "key": [
+        "<填你自己的>"
+      ],
+      "api_base": "https://api.deepseek.com/v1",
+      "timeout": 120,
+      "proxy": "",
+      "custom_headers": {},
+      "id": "deepseek",
+      "enable": true
+    }
+  ],
+  "provider": [
+    {
+      "id": "deepseek/deepseek-flash",
+      "enable": true,
+      "provider_source_id": "deepseek",
+      "model": "deepseek-flash",
+      "modalities": [
+        "text",
+        "image",
+        "tool_use"
+      ],
+      "custom_extra_body": {},
+      "max_context_tokens": 1000000
+    },
+    {
+      "id": "edge_tts",
+      "provider": "microsoft",
+      "type": "edge_tts",
+      "provider_type": "text_to_speech",
+      "enable": true,
+      "edge-tts-voice": "zh-CN-XiaoyiNeural",
+      "rate": "+0%",
+      "volume": "+0%",
+      "pitch": "+0Hz",
+      "timeout": 20
+    }
+  ],
+  "provider_settings": {
+    "web_search": true,
+    "websearch_provider": "anysearch",
+    "identifier": true,
+    "computer_use_local_permissions": {
+      "admin": {
+        "filesystem_scope": "workspace"
+      }
+    }
+  },
+  "agent_runner": {
+    "config": {
+      "model": {
+        "provider_id": "deepseek/deepseek-flash"
+      },
+      "persona": {
+        "persona_id": "大肥鱼"
+      }
+    }
+  },
+  "provider_tts_settings": {
+    "provider_id": "edge_tts",
+    "enable": false
+  },
+  "platform": [
+    {
+      "id": "default",
+      "type": "aiocqhttp",
+      "enable": true,
+      "ws_reverse_host": "0.0.0.0",
+      "ws_reverse_port": 6199,
+      "ws_reverse_token": ""
+    }
+  ],
+  "wake_prefix": [
+    "/",
+    "大肥鱼"
+  ]
+}

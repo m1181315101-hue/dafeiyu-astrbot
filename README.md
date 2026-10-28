@@ -57,6 +57,7 @@ deploy/browser_use/                    ← 🌐 只读浏览器任务（Browser 
 deploy/bili_activity/                  ← B站服务、活动开关、升级及验证说明
 deploy/incident_20261020/              ← 🧹 旧测试记录隔离脚本与复盘
 deploy/mac/                            ← 🍎 Mac 本机版 Compose（含网易云接口容器）
+deploy/mac/config/                     ← 🍎 Mac 本机版插件清单 + 改过的配置项（复刻用）
 deploy/cover/                          ← 🎤 翻唱 / 变声服务（Demucs + RVC，跑在 Mac 本机）
 CHANGELOG.md                           ← 更新日志
 deploy/                                ← 云服务器部署套件（Docker Compose + 补丁 + 备份 + 运维笔记）

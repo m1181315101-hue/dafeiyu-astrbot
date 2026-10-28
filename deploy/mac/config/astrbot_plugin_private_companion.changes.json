@@ -1,0 +1,31 @@
+{
+  "basic_config.enable_daily_token_soft_limit": false,
+  "basic_config.target_user_ids": [
+    "<主人小号QQ>"
+  ],
+  "provider_config_mode": "quick",
+  "model_assignment_config.enable_llm_streaming": true,
+  "model_assignment_config.FAST_RESPONSE_PROVIDER_ID": "deepseek/deepseek-flash",
+  "model_assignment_config.COMPLEX_REASONING_PROVIDER_ID": "deepseek/deepseek-flash",
+  "model_assignment_config.CREATIVE_MODEL_PROVIDER_ID": "deepseek/deepseek-flash",
+  "model_assignment_config.PLUGIN_VISION_PROVIDER_ID": "deepseek/deepseek-flash",
+  "message_debounce_config.private_image_self_recognition_hint": "蓝色系小鲸鱼娘：圆脸大眼睛、深蓝渐变浅蓝长卷发、头顶呆毛、深蓝女仆小裙配白围裙、蓝色椭圆胸针、鲸鱼尾巴，约两个半头身",
+  "private_followup_config.min_interval_minutes": 30,
+  "news_config.enable_news_integration": true,
+  "web_exploration_config.enable_web_exploration": true,
+  "web_exploration_config.enable_news_daily_hot_read": false,
+  "group_observation_config.group_whitelist_ids": [
+    "<允许的群号>"
+  ],
+  "group_wakeup_config.group_wakeup_direct_words": [
+    "大肥鱼"
+  ],
+  "group_wakeup_config.group_wakeup_owner_direct_words": [
+    "大肥鱼"
+  ],
+  "group_wakeup_config.enable_group_wakeup_cold_group": true,
+  "group_interject_config.enable_group_interjection_feedback": false,
+  "voice_action_config.enable_tts_enhancement": true,
+  "experimental_motivation_config.enable_experimental_motivation_model": true,
+  "legacy_compat_config.enable_segmented_proactive_reply": true
+}

@@ -2,6 +2,12 @@
 
 > 每一次值得说的进化都会记在这里。
 
+## 2026-10-28 · Mac 本机版：插件清单与配置导出、人格更新
+
+- 新增 `deploy/mac/config/`：本机实际在跑的插件清单（本仓库插件 + 第三方插件的来源、版本、许可证、启用状态），以及 AstrBot 主配置和陪伴插件里与默认值不同的配置项；密钥、QQ 号、群号都换成占位符，面板账号密码不导出。第三方插件只记来源，不复制代码。
+- 群聊续聊、生活日程、主动消息改由第三方陪伴插件 `astrbot_plugin_private_companion` 负责；`astrbot_plugin_group_followup`、`astrbot_plugin_dynamic_life_state`、`astrbot_plugin_proactive_chat` 停用。
+- `persona/大肥鱼-人格-本机版.md`：按 QQ 号认主人（新增占位符 `{主人小号QQ}`，主人用这个号来找她）；有人借主人名头占便宜要认出来并生气怼回去；QQ 表情约五六轮一次。
+
 ## 2026-10-27 · Mac 本机版：续聊、语音、唱歌
 
 - 新增 `docs/本机部署-macOS.md` 和 `deploy/mac/compose.yaml`：在 Mac 的 Docker Desktop 上跑 AstrBot + NapCat，数据目录用相对路径，端口只绑本机。

@@ -40,7 +40,7 @@ docker compose up -d          # 在 dafeiyu/ 里执行，起 astrbot 和 napcat
    初始密码在日志里：`docker logs astrbot 2>&1 | grep -A1 'Initial username'`。登录后先改密码。
 3. **填 DeepSeek key**：模型提供商 → 新增 → 选「DeepSeek」（不是 DeepSeek Responses）→
    填 API Key → 加上模型 `deepseek-chat`。对话模型留空就会用它。
-4. **人格**：把 `persona/大肥鱼-人格-本机版.md` 里的 `{主人}`、`{主人别名}` 换成自己的称呼，
+4. **人格**：把 `persona/大肥鱼-人格-本机版.md` 里的 `{主人}`、`{主人别名}`、`{主人小号QQ}` 换成自己的，
    `---` 之后的正文整段粘贴到面板「人格管理」，设为默认人格。改完要 `docker restart astrbot` 才生效。
 5. **插件**：把要用的插件目录复制到 `astrbot/data/plugins/`，每个插件把 `config.example.json` 复制成 `config.json` 再改，
    改完 `docker restart astrbot`。没有 `config.json` 时插件用代码里的默认值（token 为空）。
@@ -79,6 +79,9 @@ docker exec astrbot pip install --no-deps --target /AstrBot/data/site-packages e
 ```
 
 ## 插件
+
+完整清单（含第三方插件的来源、版本、启用状态）和改过的配置项见 [`deploy/mac/config/`](../deploy/mac/config/README.md)。
+目前群聊续聊、生活日程和主动消息交给第三方的陪伴插件 `astrbot_plugin_private_companion`，下面的 `astrbot_plugin_group_followup` 已停用（留着备用）。
 
 - `astrbot_plugin_face_convert`：把 `[旺柴]` 这类写法变成真 QQ 表情（见 README）。
 - `astrbot_plugin_private_only`：**私聊都回，群里只回指定的群**。
