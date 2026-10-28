@@ -39,6 +39,7 @@ plugin/astrbot_plugin_group_followup/  ← 💬 群聊续聊：@ 一次之后同
 plugin/astrbot_plugin_private_only/    ← 🔒 私聊都回，群里只回指定的群
 plugin/astrbot_plugin_voice/           ← 🔊 有人要语音才发：edge-tts 念 + RVC 换成她的声音
 plugin/astrbot_plugin_sing/            ← 🎤 唱歌：调本机翻唱服务，发来一段副歌语音条
+plugin/astrbot_plugin_selfie/          ← 📷 自拍：有人要看就从她的照片文件夹里挑一张原样发
 persona/大肥鱼-人格.md                 ← 人格提示词（可直接导入 AstrBot）
 persona/大肥鱼-人格-本机版.md          ← 挂在主人自己号上的变体（多条回复 / 表情 / 护主人）
 persona/课程记忆-模板.md               ← "让她自己悟"的教学记忆模板

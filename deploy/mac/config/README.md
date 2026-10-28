@@ -12,6 +12,7 @@
 | `astrbot_plugin_private_only` | v1.1.0 | 本仓库 `plugin/` | 启用 | 私聊都回，群里只回指定的群 |
 | `astrbot_plugin_voice` | v1.0.0 | 本仓库 `plugin/` | 启用 | `tts_speak`：有人要语音才发，edge-tts + RVC |
 | `astrbot_plugin_sing` | v1.0.0 | 本仓库 `plugin/` | 启用 | `sing_song`：调本机翻唱服务 |
+| `astrbot_plugin_selfie` | v1.0.0 | 本仓库 `plugin/` | 启用 | `send_selfie`：有人要自拍就从照片文件夹挑一张原样发 |
 | `astrbot_plugin_group_followup` | v1.0.0 | 本仓库 `plugin/` | **停用** | 群聊续聊，现在交给陪伴插件 |
 | `astrbot_plugin_private_companion`（陪伴面板） | 6.5.6 | [menglimi/astrbot_plugin_private_companion](https://github.com/menglimi/astrbot_plugin_private_companion)（仓库未声明许可证） | 启用 | 生活日程、关系、主动消息、群聊续聊与读空气、TTS 增强 |
 | `meme_manager`（表情包） | 5.2.9 | [anka-afk/astrbot_plugin_meme_manager](https://github.com/anka-afk/astrbot_plugin_meme_manager)（MIT） | 启用 | 表情包图片，配置全默认 |
@@ -36,8 +37,10 @@
   - `target_user_ids`（主用户）填 `<主人小号QQ>`，要和人格里的 `{主人小号QQ}` 是同一个号。
   - 群聊：主动插话打开（每群每天最多 6 次、间隔至少 60 分钟），强唤醒词「大肥鱼、肥鱼、大飞鱼」，兴趣唤醒 30%，回完后不用 @ 最多再接 3 轮。
   - `basic_config.enable_proactive_only_mode`（仅保留主动能力）要**保持关闭**（默认值，所以导出里没有它）：开着的话群聊的复读、唤醒、续接、插话和私聊里的语音都会停掉。
+  - `experimental_motivation_config.enable_reaction_expression_experiment`（表情表达实验）要**保持关闭**（默认值，所以导出里没有它）：开着时表情包插件连着几个小时一张图也没挑出来，关掉后又开始出图。
+  - `photo_action_config` 里把她的自拍设成人格参考图（`photo_reference_library` 一行是「图片路径 || 外观说明」），以后接上生图后端时用来保持长相。图片本身不在仓库里，换成你自己的。
 - 其他第三方插件（表情包、`memory_companion`）的配置都是默认值。
-- 本仓库自己的插件：各插件目录下的 `config.example.json` 复制成 `config.json`。
+- 本仓库自己的插件：各插件目录下的 `config.example.json` 复制成 `config.json`。`astrbot_plugin_selfie` 的照片放进 `data/plugin_data/astrbot_plugin_selfie/photos/`。
 
 ## 人格
 

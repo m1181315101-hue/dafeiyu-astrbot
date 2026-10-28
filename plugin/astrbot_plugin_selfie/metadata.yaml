@@ -1,0 +1,5 @@
+name: astrbot_plugin_selfie
+display_name: 自拍
+desc: 给她一个 send_selfie 工具：有人要看她的自拍、照片时，从她的照片文件夹里挑一张原样发出去
+version: v1.0.0
+author: dafeiyu-local

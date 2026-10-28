@@ -45,7 +45,11 @@
   "voice_action_config.enable_voice_action": true,
   "voice_action_config.enable_tts_enhancement": true,
   "voice_action_config.tts_provider_id_zh": "edge_tts",
-  "experimental_motivation_config.enable_reaction_expression_experiment": true,
+  "photo_action_config.enable_photo_reference_image": true,
+  "photo_action_config.photo_persona_reference_image_path": "/AstrBot/data/plugin_data/astrbot_plugin_private_companion/persona_reference/<她的自拍>.jpg",
+  "photo_action_config.photo_reference_library": [
+    "/AstrBot/data/plugin_data/astrbot_plugin_private_companion/persona_reference/<她的自拍>.jpg || <这张图里她的外观说明>"
+  ],
   "experimental_motivation_config.enable_experimental_motivation_model": true,
   "legacy_compat_config.enable_segmented_proactive_reply": true
 }
