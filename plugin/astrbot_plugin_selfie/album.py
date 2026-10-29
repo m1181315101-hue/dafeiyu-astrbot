@@ -115,11 +115,11 @@ def pick(photos: list[dict], kind: str = "", with_whom: str = "", scene: str = "
     rng = rng or random
     now = now or datetime.datetime.now(TZ)
     who = mate_name(with_whom)
-    if not who:  # 同事名写进了 scene 里也认
+    kind = (kind or "").strip()
+    if not who and kind in ("", "合照"):  # 同事名写进了 scene 里也认；明说要自拍、生活照时不算
         low = (scene or "").lower()
         who = next((m for m in MATES if m.lower() in low), "") or \
             next((v for k, v in ALIASES.items() if k in low), "")
-    kind = (kind or "").strip()
     if who:
         kind = "合照"
     pool = photos

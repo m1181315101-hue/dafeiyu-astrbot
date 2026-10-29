@@ -88,6 +88,8 @@ p, _ = pick(photos, with_whom="大家")
 check("看大家：发全员合照", p and p["file"] == "k_全员.jpg")
 p, _ = pick(photos, scene="想看你和kimi")
 check("同事名写在场景里也认（Kimi 没单独合照就发全员）", p and p["file"] == "k_全员.jpg")
+p, _ = pick(photos, kind="自拍", scene="GPT 说你委屈巴巴的")
+check("明说要自拍时，场景里的同事名不把它变成合照", p and p["file"] == "d_委屈.jpg")
 p, why = pick(photos, with_whom="豆包")
 check("没有的同事：不发，说没有", p is None and "豆包" in why)
 
