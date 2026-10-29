@@ -1,0 +1,5 @@
+name: astrbot_plugin_welcome
+display_name: 新人欢迎
+desc: 新人进群时让她用自己的口吻欢迎一句并 @ 新人（只在设置里列出的群）
+version: v1.0.0
+author: dafeiyu-local
