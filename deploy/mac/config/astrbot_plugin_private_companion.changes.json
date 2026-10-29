@@ -41,6 +41,8 @@
   "group_wakeup_config.enable_group_wakeup_cold_group": true,
   "group_interject_config.enable_group_interjection": true,
   "group_interject_config.group_repeat_trigger_threshold": 3,
+  "group_interject_config.group_repeat_follow_probability": 50,
+  "group_interject_config.group_repeat_interrupt_probability": 5,
   "group_interject_config.group_interject_min_interval_minutes": 60,
   "group_interject_config.group_interject_max_daily": 6,
   "group_interject_config.enable_group_interjection_feedback": false,
