@@ -1,0 +1,8 @@
+{
+  "01_起床.jpg": {"kind": "自拍", "scene": "早上刚睡醒、揉着眼睛的自拍", "keywords": ["早上", "早安", "起床"], "times": ["早上"]},
+  "04_白饭.jpg": {"kind": "自拍", "scene": "捧着一大碗白饭的自拍", "keywords": ["吃饭", "白饭", "吃了吗"]},
+  "20_下雨.jpg": {"kind": "生活照", "scene": "下雨天撑着透明伞站在屋檐下", "keywords": ["下雨", "雨天"], "ask_only": true},
+  "24_银杏.jpg": {"kind": "生活照", "scene": "秋天在银杏路上捧着烤红薯", "keywords": ["秋天", "烤红薯"], "seasons": ["秋"]},
+  "28_和Claude.jpg": {"kind": "合照", "with": ["Claude"], "scene": "和 Claude 在咖啡馆吃蛋糕", "keywords": ["下午茶", "咖啡"]},
+  "34_和千问.jpg": {"kind": "合照", "with": ["千问"], "scene": "春节和千问一起包饺子", "keywords": ["过年", "饺子"], "festival": "春节"}
+}
