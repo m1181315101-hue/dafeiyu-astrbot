@@ -32,6 +32,7 @@ INDEX = {
     "i_和Grok.jpg": {"kind": "合照", "with": ["Grok"], "scene": "万圣节做鬼脸", "keywords": ["万圣节"], "festival": "万圣节"},
     "j_和千问.jpg": {"kind": "合照", "with": ["千问"], "scene": "春节包饺子", "keywords": ["过年", "饺子"], "festival": "春节"},
     "k_全员.jpg": {"kind": "合照", "with": MATES, "scene": "圣诞大合照", "keywords": ["圣诞"], "festival": "圣诞"},
+    "l_海边全员.jpg": {"kind": "合照", "with": MATES, "scene": "海边大合照", "keywords": ["海边", "游泳"], "ask_only": True},
 }
 
 failed = 0
@@ -84,8 +85,10 @@ p, _ = pick(photos, with_whom="Claude")
 check("看 Claude：单独合照优先于全员合照", p and p["file"] == "h_和Claude.jpg")
 p, _ = pick(photos, with_whom="GLM")
 check("看 GLM：没有单独合照就发全员那张", p and p["file"] == "k_全员.jpg")
-p, _ = pick(photos, with_whom="大家")
-check("看大家：发全员合照", p and p["file"] == "k_全员.jpg")
+seen = {pick(photos, with_whom="大家", rng=random.Random(i))[0]["file"] for i in range(100)}
+check("看大家：发全员合照，不挑只在聊到时才发的海边那张", seen == {"k_全员.jpg"})
+p, _ = pick(photos, with_whom="大家", scene="去海边吧")
+check("看大家又聊到海边：发海边那张", p and p["file"] == "l_海边全员.jpg")
 p, _ = pick(photos, scene="想看你和kimi")
 check("同事名写在场景里也认（Kimi 没单独合照就发全员）", p and p["file"] == "k_全员.jpg")
 p, _ = pick(photos, kind="自拍", scene="GPT 说你委屈巴巴的")

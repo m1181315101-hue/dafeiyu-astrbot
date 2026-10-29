@@ -149,8 +149,8 @@ def pick(photos: list[dict], kind: str = "", with_whom: str = "", scene: str = "
     if hits:
         top = max(s for s, _ in hits)
         cands = [p for s, p in hits if s == top]
-    elif who:
-        cands = pool  # 点名看同事：不管节日季节，有就发
+    elif who:  # 点名看同事：不管节日季节，有就发；只在聊到时才发的（比如泳装照）能不挑就不挑
+        cands = [p for p in pool if not p["ask_only"]] or pool
     else:
         cands = [p for p in pool if fits_now(p, now)] or [p for p in pool if not p["ask_only"]] or pool
     fresh = [p for p in cands if p["file"] not in recent]
