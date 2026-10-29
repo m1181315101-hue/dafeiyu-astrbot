@@ -97,12 +97,15 @@ assets/voice-demo/                     ← 音色样本与复刻链路说明
 - 图片 / 表情包 → 补上"[对方发来一张图片]"，交给 AstrBot 的图片转述
 - 语音 → NapCat 转 mp3 → qwen3-asr-flash 听写 → 文本进上下文
 - 视频 → 本地下载 → ffmpeg 抽帧 + 抽音轨 → qwen3-vl 按时间分批看图 + qwen3-asr 分段听声；超时保留已有结果
-- 身份标记 → 群聊消息自动带上 `[昵称(QQ号)]`（管理员标「主人」）、访客私聊标「主人的朋友」——
+- 身份标记 → 群聊消息自动带上 `[昵称(QQ号)]`（主人标「主人」、女主人标「女主人」）、访客私聊标「主人的朋友」
+  （主人和女主人私聊不标）——
   让她分得清谁在说话；标记只进她的上下文，**对方看不到**；群里只喊名字没内容时，自动补
   「（喊了你一声）」的回应由头
 
 **可调参数（可选）**：插件目录下放 `config.json` 可覆盖 `hedge_eraser`（嘴硬橡皮擦开关）、
-`face_cooldown_minutes` 和媒体处理参数。**3～5 分钟视频已作为默认配置**，
+`face_cooldown_minutes` 和媒体处理参数；身份标记认人用 `owner_ids`（主人）、`partner_ids`（女主人），
+格式见 `config.example.json`：写「平台 ID:号」只在那个平台算（微信连接器的号建议这样写，免得和某个 QQ 号撞上），
+AstrBot 的 `admins_id` 一直算主人。**3～5 分钟视频已作为默认配置**，
 旧 `config.json` 会覆盖新默认值，升级时请按 [视频识别说明](docs/视频识别.md) 合并更新。
 回归测试：`python tests/test_face_rules.py`、`python tests/test_video_processing.py`。
 

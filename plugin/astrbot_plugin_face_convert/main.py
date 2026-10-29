@@ -49,6 +49,10 @@ DEFAULT_CONFIG = {
     "media_queue_timeout_s": 10,
     # 这些平台（AstrBot 里的平台 ID）不转 QQ 表情段，改成该平台认的「[名字]」文字（目前只有微信）
     "text_emoji_platforms": ["wechat"],
+    # 身份标记认人：主人、女主人的号。写「号」在所有平台都算，写「平台 ID:号」只在那个平台算
+    # （微信连接器给的号是算出来的，可能和某个 QQ 号撞上，建议带平台 ID）。AstrBot 的 admins_id 一直算主人
+    "owner_ids": [],
+    "partner_ids": [],
 }
 
 
@@ -195,6 +199,10 @@ class FaceConvertPlugin(Star):
                 self.cfg[key] = min(high, max(low, int(self.cfg[key])))
             except (TypeError, ValueError, OverflowError):
                 self.cfg[key] = DEFAULT_CONFIG[key]
+        self.owner_ids, self.partner_ids = (
+            {str(x).strip() for x in (v if isinstance(v, list) else [v]) if str(x).strip()}
+            for v in (self.cfg["owner_ids"], self.cfg["partner_ids"])
+        )
         self._media_sem = asyncio.Semaphore(
             max(1, int(self.cfg.get("max_concurrent_media", 2)))
         )
@@ -221,6 +229,16 @@ class FaceConvertPlugin(Star):
             f"[face_convert] 表情字典载入完成，共 {len(self.face_map)} 条；"
             f"语音转写{'已就绪' if self.dashscope_key else '未配置'}"
         )
+
+    def _identity(self, platform: str, sid: str) -> str:
+        """主人 / 女主人 / 空：admins_id 和 owner_ids 算主人，partner_ids 算女主人"""
+        def listed(ids: set[str]) -> bool:
+            return sid in ids or f"{platform}:{sid}" in ids
+        if sid in self.admins or listed(self.owner_ids):
+            return "主人"
+        if listed(self.partner_ids):
+            return "女主人"
+        return ""
 
     async def _transcribe_voice(self, event: AstrMessageEvent, rec) -> str | None:
         """语音消息 -> 文字：NapCat 转 mp3 -> 百炼 qwen3-asr-flash"""
@@ -636,16 +654,18 @@ class FaceConvertPlugin(Star):
                 logger.info(f"[face_convert] 收信翻译: {extra}")
 
         # 身份标记（只进她的上下文，对方看不到字面量）：
-        # 群聊 -> [昵称(QQ号)]，管理员标「主人」；陌生人私聊 -> [主人的朋友 昵称(QQ号)]
+        # 群聊 -> [昵称(QQ号)]，主人标「主人」、女主人标「女主人」；
+        # 私聊里主人和女主人不标，其他人 -> [主人的朋友 昵称(QQ号)]
         try:
             if not event.get_extra("_fy_tagged"):
                 sid = str(event.get_sender_id())
                 is_group = bool(event.get_group_id())
-                is_guest = (not is_group) and event.is_private_chat() and sid not in self.admins
+                role = self._identity(event.get_platform_id(), sid)
+                is_guest = (not is_group) and event.is_private_chat() and not role
                 if is_group or is_guest:
                     name = re.sub(r"[\[\]\r\n]", "", (event.get_sender_name() or "").strip())[:16]
-                    if is_group and sid in self.admins:
-                        tag = f"主人({sid})"
+                    if is_group and role:
+                        tag = f"{role}({sid})"
                     elif is_group:
                         tag = f"{name}({sid})" if name else f"群友({sid})"
                     else:

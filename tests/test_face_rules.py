@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""face_convert 回归测试：嘴硬橡皮擦不误删 + file:// 路径解析。
+"""face_convert 回归测试：嘴硬橡皮擦不误删 + file:// 路径解析 + 身份标记认人。
 
 跑法（纯标准库，不需要 AstrBot 环境）：
     python tests/test_face_rules.py
@@ -148,6 +148,53 @@ for src, want in (
 ):
     got = NORM(src)
     check("punct: " + src, got == want, repr(got))
+
+# 6) 身份标记：主人、女主人按平台认；私聊里不标他们，群里标「主人」「女主人」，其他人照旧
+import asyncio  # noqa: E402
+
+
+class _Event:
+    def __init__(self, platform, sid, group="", name="小明", text="在吗"):
+        self.platform, self.sid, self.group, self.name, self.message_str = platform, sid, group, name, text
+        self.extra, self.is_wake = {}, False
+
+    def get_messages(self): return []
+    def get_platform_id(self): return self.platform
+    def get_sender_id(self): return self.sid
+    def get_group_id(self): return self.group
+    def get_sender_name(self): return self.name
+    def is_private_chat(self): return not self.group
+    def get_self_id(self): return "999"
+    def get_extra(self, k, default=None): return self.extra.get(k, default)
+    def set_extra(self, k, v): self.extra[k] = v
+
+
+plugin = object.__new__(mod.FaceConvertPlugin)
+plugin.cfg, plugin.id2name, plugin.admins = dict(mod.DEFAULT_CONFIG), {}, ["astrbot"]
+plugin.owner_ids, plugin.partner_ids = {"default:111", "wechat:222"}, {"default:333"}
+
+
+def tag(platform, sid, group=""):
+    ev = _Event(platform, sid, group)
+    asyncio.run(plugin.inbound_face_to_text(ev))
+    return ev.message_str
+
+
+for name, args, want in (
+    ("QQ 私聊主人小号不标", ("default", "111"), "在吗"),
+    ("微信私聊主人不标", ("wechat", "222"), "在吗"),
+    ("QQ 私聊女主人不标", ("default", "333"), "在吗"),
+    ("QQ 群里主人标主人", ("default", "111", "g1"), "[主人(111)] 在吗"),
+    ("微信群里主人标主人", ("wechat", "222", "g1"), "[主人(222)] 在吗"),
+    ("QQ 群里女主人标女主人", ("default", "333", "g1"), "[女主人(333)] 在吗"),
+    ("微信的号在 QQ 上不算主人", ("default", "222"), "[主人的朋友 小明(222)] 在吗"),
+    ("别人私聊照旧", ("wechat", "444"), "[主人的朋友 小明(444)] 在吗"),
+    ("别人在群里照旧", ("default", "444", "g1"), "[小明(444)] 在吗"),
+):
+    got = tag(*args)
+    check("tag: " + name, got == want, repr(got))
+plugin.admins = ["555"]
+check("tag: admins_id 仍算主人", tag("wechat", "555", "g1") == "[主人(555)] 在吗", tag("wechat", "555", "g1"))
 
 print()
 if failures:
