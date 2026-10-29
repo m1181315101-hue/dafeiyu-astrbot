@@ -16,7 +16,7 @@
 | `astrbot_plugin_platform_hint` | v1.0.0 | 本仓库 `plugin/` | 启用 | 系统提示末尾标【当前平台】：QQ 还是微信 |
 | `astrbot_plugin_group_followup` | v1.0.0 | 本仓库 `plugin/` | **停用** | 群聊续聊，现在交给陪伴插件 |
 | `astrbot_plugin_private_companion`（陪伴面板） | 6.5.6 | [menglimi/astrbot_plugin_private_companion](https://github.com/menglimi/astrbot_plugin_private_companion)（仓库未声明许可证） | 启用 | 生活日程、关系、主动消息、群聊续聊与读空气、TTS 增强 |
-| `meme_manager`（表情包） | 5.2.9 | [anka-afk/astrbot_plugin_meme_manager](https://github.com/anka-afk/astrbot_plugin_meme_manager)（MIT） | 启用 | 表情包图片，配置全默认 |
+| `meme_manager`（表情包） | 5.2.9 | [anka-afk/astrbot_plugin_meme_manager](https://github.com/anka-afk/astrbot_plugin_meme_manager)（MIT） | 启用 | 表情包图片；只改了一项：打开「表情使用频率」提示（`generation.prompt.quantity_guidance_enabled = true`，用它默认的「每约 4 条回复配 1 张图」），其余默认 |
 | `astrbot_plugin_livingmemory` | 2.8.0 | [lxfight-s-Astrbot-Plugins/astrbot_plugin_livingmemory](https://github.com/lxfight-s-Astrbot-Plugins/astrbot_plugin_livingmemory)（AGPL-3.0） | **已卸载** | 长期记忆；要 Embedding 提供商，没配一直初始化失败，换成了下面的 `memory_companion` |
 | `astrbot_plugin_memory_companion`（我会牢牢记住你） | 1.10.5 | [menglimi/astrbot_plugin_memory_companion](https://github.com/menglimi/astrbot_plugin_memory_companion)（仓库未声明许可证） | 启用 | 长期记忆，陪伴插件作者的配套插件；Embedding 可选，配置全默认 |
 | `astrbot_plugin_proactive_chat` | v1.2.6 | [Pancakes-Labs/astrbot_plugin_proactive_chat](https://github.com/Pancakes-Labs/astrbot_plugin_proactive_chat)（AGPL-3.0） | **已卸载** | 主动消息；和陪伴插件重复 |
