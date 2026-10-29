@@ -48,6 +48,9 @@
   - `basic_config.enable_proactive_only_mode`（仅保留主动能力）要**保持关闭**（默认值，所以导出里没有它）：开着的话群聊的复读、唤醒、续接、插话和私聊里的语音都会停掉。
   - `experimental_motivation_config.enable_reaction_expression_experiment`（表情表达实验）关着（默认值，所以导出里没有它）。
   - 陪伴插件自带的 `pc_find_reaction_image`（找反应图）工具要在 AstrBot 面板「函数工具」里**停用**（存在全局偏好 `inactivated_llm_tools` 里）。它用的是陪伴插件自己的素材库，没往里导图时是空的；可它的说明会鼓励模型「素材库可能是空的也可以试试」，于是有人要表情包时，她大多去调这个工具，拿到「素材库为空」，图就没了，表情包插件根本轮不到。以后往陪伴插件的素材库导了图再打开。
+  - 2026-10-30 为了给提示词减负，又在「函数工具」里停了 12 个（同样存在 `inactivated_llm_tools`）：每次请求都会带上全部工具的说明，量下来工具说明占了一次聊天请求的一半多，人格只占 8%。停的是 3 天里一次都没成功用过的：陪伴插件的 QQ 空间三个（`pc_qzone_view_feed`、`pc_qzone_publish_feed`、`pc_qzone_reply_my_comment`）、生图 `pc_generate_photo`（唯一一次调用报错，生图后端没接上）、备忘录 `pc_manage_memo`（记忆插件的笔记能代替）、批量发送 `pc_send_to_groups` / `pc_send_to_private_users`、预约群转发 `pc_schedule_group_relay`、看自己作品 `pc_view_creative_work`；还有 anysearch 插件自带的三个搜索工具（`anysearch_search`、`anysearch_batch_search`、`anysearch_extract`），和 AstrBot 自带的网页搜索 `web_search_anysearch` 是同一个后端，留自带的那个。以后要用哪个，在面板里重新打开就行。
+  - 同一天还关了 AstrBot 的 4 个内置技能（`data/skills.json` 里 documents、pdf、skill-creator、spreadsheets 的 `active` 改成 `false`）：它们要沙箱才能跑，本机 `computer_use_runtime` 是 `none`，用不了，可每次请求都带着约 3500 字说明。
+  - MCP 工具（比如藏宝阁那 15 个）用这个办法停不掉：AstrBot 每次连上 MCP 服务都重新注册一遍，忘掉停用状态（`my_holdings` 一直在停用清单里，可每次请求照样带着）。要藏得在 MCP 服务那边处理。
   - `photo_action_config` 里把她的自拍设成人格参考图（`photo_reference_library` 一行是「图片路径 || 外观说明」），以后接上生图后端时用来保持长相。图片本身不在仓库里，换成你自己的。
 - 其他第三方插件（表情包、`memory_companion`）的配置都是默认值（表情包另开了「表情使用频率」提示，见上表）。
 - **`memory_companion` 有一处本地改动（2026-10-29，插件升级会被覆盖，升级后要重新改）**：`core/summarizer.py` 的 `summary_quality` 里，总结只要出现「某用户、某人、有人、群成员」这类词就判成低质量、进不了长期记忆；但它按字面找「有人」，「没有人」「所有人」也会被拦。微信群两天里 134 次被拒全是这条，约三分之一（46 条）是这么误判的。改法：查这些词之前，先把「没有人」「所有人」「只有人」「有人气」从总结里去掉再查，其余规则不动。这个问题还没提给作者。
