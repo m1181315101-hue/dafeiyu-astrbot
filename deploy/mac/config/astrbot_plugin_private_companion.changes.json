@@ -16,7 +16,7 @@
   "message_debounce_config.private_image_self_recognition_hint": "蓝色系小鲸鱼娘：圆脸大眼睛、深蓝渐变浅蓝长卷发、头顶呆毛、深蓝女仆小裙配白围裙、蓝色椭圆胸针、鲸鱼尾巴，约两个半头身",
   "private_followup_config.group_conversation_followup_max_turns": 3,
   "private_followup_config.min_interval_minutes": 30,
-  "private_followup_config.enable_proactive_burst": true,
+  "private_followup_config.enable_proactive_burst": false,
   "private_followup_config.group_air_guard_window_seconds": 120,
   "private_followup_config.group_air_guard_max_bot_replies": 6,
   "timer_config.enable_proactive_quote_trigger_message": true,

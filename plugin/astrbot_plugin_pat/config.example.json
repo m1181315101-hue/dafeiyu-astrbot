@@ -1,0 +1,5 @@
+{
+  "platforms": ["wechat"],
+  "cooldown_seconds": 60,
+  "daily_limit": 20
+}

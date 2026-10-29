@@ -1,0 +1,5 @@
+name: astrbot_plugin_pat
+display_name: 拍一拍
+desc: 有人拍一拍（微信）或戳一戳（QQ）她时，用她自己的口吻回一句（只在设置里列出的平台）
+version: v1.0.0
+author: dafeiyu-local

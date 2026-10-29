@@ -42,6 +42,7 @@ plugin/astrbot_plugin_sing/            ← 🎤 唱歌：调本机翻唱服务�
 plugin/astrbot_plugin_selfie/          ← 📷 相册：自拍、生活照、和同事的合照，按对照表挑最贴的一张原样发
 plugin/astrbot_plugin_platform_hint/   ← 🧭 告诉她这条消息来自 QQ 还是微信
 plugin/astrbot_plugin_welcome/         ← 👋 新人进群时用她自己的口吻欢迎一句并 @ 新人（只在指定的群）
+plugin/astrbot_plugin_pat/             ← 👉 有人拍一拍（微信）或戳一戳（QQ）她时，用她自己的口吻回一句（只在指定的平台）
 persona/大肥鱼-人格.md                 ← 人格提示词（可直接导入 AstrBot）
 persona/大肥鱼-人格-本机版.md          ← 挂在主人自己号上的变体（多条回复 / 表情 / 护主人）
 persona/课程记忆-模板.md               ← "让她自己悟"的教学记忆模板

@@ -43,14 +43,17 @@
   - 回得快一点：群里热闹时的合并等待 8→3 秒（`group_high_intensity_merge_seconds`）、只喊一两个字时等补话 15→6 秒（`group_wakeup_short_text_wait_seconds`）、只发图片或表情包时等补话 8→4 秒（`image_message_debounce_seconds`）。按日志拆过：微信上从收到消息到发出回复中位约 7 秒，大头是这几种等待，不是连接器。代价是热闹时合并得少、可能多回几条。
   - 群聊高强度收口（`enable_group_high_intensity_mode`）关掉了：开着时一分钟内被叫 3 次就把后面的合并成一轮处理，实测有写好的回复没发出去、合并缓冲里的消息也没再出来。关掉后每个叫她的人单独处理，热闹时回得多一些。
   - 陪伴插件的 TTS 增强（`voice_action_config.enable_tts_enhancement`）关掉了：它每轮按 25% 的概率接管语音，接管那一轮会把回复类型从「模型生成」改成「普通结果」（防止 AstrBot 自带 TTS 再处理一遍），可 AstrBot 的分段回复只对「模型生成」的回复生效，于是约三成回复几行字挤成一条发。它用的还是 edge_tts（晓伊）的声音，一天只真发出过 6 条语音；要语音时走本仓库的 `tts_speak`（NORA 的声音），不受影响。
+  - 主动私聊的「连发」（`private_followup_config.enable_proactive_burst`）2026-10-30 关掉了：开着时一次主动会连着发两条（间隔 45–180 秒），实测有人 4 分钟里收到两条。在陪伴面板里手动打开了「允许主动私聊」的朋友，每天主动上限从 3 改成 1（这一项存在插件数据 `companions.json` 里，不在配置里，导出看不到）。
+  - 陪伴插件自带的被动戳一戳（`reactive_poke_config.enable_reactive_poke`）保持关闭（默认值）：它生成回复时不带人格（系统提示只有一句「你是一位正在陪伴用户的 AI 角色」），还有 30% 的概率直接回「哎呀，被发现了~」这类预设句；反戳走的是 QQ 的接口，微信上不对。拍一拍 / 戳一戳交给本仓库的 `astrbot_plugin_pat`。
   - `basic_config.enable_proactive_only_mode`（仅保留主动能力）要**保持关闭**（默认值，所以导出里没有它）：开着的话群聊的复读、唤醒、续接、插话和私聊里的语音都会停掉。
   - `experimental_motivation_config.enable_reaction_expression_experiment`（表情表达实验）关着（默认值，所以导出里没有它）。
   - 陪伴插件自带的 `pc_find_reaction_image`（找反应图）工具要在 AstrBot 面板「函数工具」里**停用**（存在全局偏好 `inactivated_llm_tools` 里）。它用的是陪伴插件自己的素材库，没往里导图时是空的；可它的说明会鼓励模型「素材库可能是空的也可以试试」，于是有人要表情包时，她大多去调这个工具，拿到「素材库为空」，图就没了，表情包插件根本轮不到。以后往陪伴插件的素材库导了图再打开。
   - `photo_action_config` 里把她的自拍设成人格参考图（`photo_reference_library` 一行是「图片路径 || 外观说明」），以后接上生图后端时用来保持长相。图片本身不在仓库里，换成你自己的。
 - 其他第三方插件（表情包、`memory_companion`）的配置都是默认值（表情包另开了「表情使用频率」提示，见上表）。
 - **`memory_companion` 有一处本地改动（2026-10-29，插件升级会被覆盖，升级后要重新改）**：`core/summarizer.py` 的 `summary_quality` 里，总结只要出现「某用户、某人、有人、群成员」这类词就判成低质量、进不了长期记忆；但它按字面找「有人」，「没有人」「所有人」也会被拦。微信群两天里 134 次被拒全是这条，约三分之一（46 条）是这么误判的。改法：查这些词之前，先把「没有人」「所有人」「只有人」「有人气」从总结里去掉再查，其余规则不动。这个问题还没提给作者。
+- **AstrBot 在跑的时候，别在 macOS 本机直接打开 `data/` 下的 SQLite 库**（`data_v4.db`、插件的 `.db`），只读也不行：这些库是 WAL 模式，锁和共享内存跨不过 Docker Desktop 的虚拟机，本机一关库就可能把容器正在写的 WAL 截掉。2026-10-30 这样坏过一次 `data_v4.db` 的定时任务表。要看就 `docker cp` 一份出来看拷贝，要改就先停 AstrBot。
 - 本仓库自己的插件：各插件目录下的 `config.example.json` 复制成 `config.json`。`astrbot_plugin_selfie` 的照片放进 `data/plugin_data/astrbot_plugin_selfie/photos/`。
 
 ## 人格
 
-`persona/大肥鱼-人格-本机版.md`，导入前替换 `{主人}`、`{主人别名}`、`{主人小号QQ}`。
+`persona/大肥鱼-人格-本机版.md`，导入前把正文里的占位符（`{主人}`、`{主人别名}`、`{主人小号QQ}`、微信和女主人的几个号）换成自己的，清单见文件开头。
