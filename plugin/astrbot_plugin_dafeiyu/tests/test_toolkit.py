@@ -169,6 +169,66 @@ def test_face_borrows_dashscope_key_in_configured_order():
     face = face_mod.FaceConvert(FakeContext({"provider": providers, "admins_id": []}), {"dashscope_key_providers": ["nope"]})
     assert face.dashscope_key == ""
 
+class GroupEvent:
+    """群消息：带真的消息段，看给她的指向说明"""
+
+    def __init__(self, comps, self_id="900", sender="小红"):
+        self.comps = comps
+        self.self_id = self_id
+        self.sender = sender
+        self.unified_msg_origin = "wechat:GroupMessage:1"
+
+    def get_self_id(self):
+        return self.self_id
+
+    def get_sender_name(self):
+        return self.sender
+
+    def get_messages(self):
+        return self.comps
+
+
+def test_reply_direction_has_only_a_switch():
+    assert defaults("reply_direction") == {}
+
+
+def test_reply_direction_tells_her_who_is_being_addressed():
+    from astrbot.core.message.components import At, AtAll, Plain, Reply
+
+    gate = mod("reply_direction").ReplyDirection({})
+    her = lambda: Reply(id="1", sender_id="900")  # noqa: E731
+    hint = gate.hint_for(GroupEvent([her(), At(qq="123", name="小明"), Plain(text="你看她说的")]))
+    assert hint.startswith("【这句在跟谁说】小红引用了你之前说的话，但 @ 的是小明，不是你")
+    assert "别当成小红在问你" in hint
+    both = gate.hint_for(GroupEvent([her(), At(qq="900", name="大肥鱼"), At(qq="123", name="小明"), Plain(text="你俩说")]))
+    assert "同时 @ 了你和小明" in both
+    many = gate.hint_for(GroupEvent([her()] + [At(qq=str(i), name=f"人{i}") for i in range(4)] + [At(qq="0", name="人0")]))
+    assert "@ 的是人0、人1、人2等人" in many  # 重复 @ 同一人只算一次，最多点名三个
+    assert "号码 123" in gate.hint_for(GroupEvent([her(), At(qq="123", name=""), Plain(text="看")]))
+    for name, comps in (
+        ("只引用她、没 @ 人", [her(), Plain(text="真的假的")]),
+        ("@ 全体", [her(), AtAll(), Plain(text="都来看")]),
+        ("引用的是别人", [Reply(id="2", sender_id="555"), At(qq="123", name="小明"), Plain(text="你看")]),
+        ("没引用", [At(qq="123", name="小明"), Plain(text="你看")]),
+    ):
+        assert gate.hint_for(GroupEvent(comps)) == "", name
+
+
+def test_reply_direction_hint_goes_into_this_turn_only():
+    from astrbot.core.message.components import At, Plain, Reply
+
+    gate = mod("reply_direction").ReplyDirection({})
+    req = SimpleNamespace(system_prompt="人格", extra_user_content_parts=[])
+    event = GroupEvent([Reply(id="1", sender_id="900"), At(qq="123", name="小明"), Plain(text="你看")])
+    assert asyncio.run(gate.add_hint(event, req)) is True
+    assert req.system_prompt == "人格"  # 不动系统提示词，缓存不受影响
+    (part,) = req.extra_user_content_parts
+    assert part.text.startswith("【这句在跟谁说】") and part.model_dump_for_context().get("_no_save") is True
+    req = SimpleNamespace(system_prompt="人格", extra_user_content_parts=[])
+    assert asyncio.run(gate.add_hint(GroupEvent([Plain(text="普通的话")]), req)) is False
+    assert req.extra_user_content_parts == []
+
+
 def test_face_normalizes_punctuation_like_before():
     face_mod = mod("face")
     assert face_mod.FaceConvert._normalize_punctuation("好、但是「不行」") == "好，但是“不行”"
@@ -184,7 +244,7 @@ def build(config):
 
 def test_toolkit_defaults_build_our_modules_and_skip_astrna():
     kit, ctx = build({})
-    for name in ("private_only", "platform_hint", "face", "pat", "welcome", "selfie", "sing", "voice"):
+    for name in ("private_only", "reply_direction", "platform_hint", "face", "pat", "welcome", "selfie", "sing", "voice"):
         assert getattr(kit, name) is not None, name
     assert kit.preamble is None and kit.tool_history is None and kit.output_limit is None
     assert ctx.unregistered == []

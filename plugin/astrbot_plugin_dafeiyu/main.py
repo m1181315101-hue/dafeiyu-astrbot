@@ -1,4 +1,4 @@
-"""大肥鱼工具箱：我们自己写的 8 个小插件合成一个，再加上从 AstrNa 搬来的 3 个可选功能。
+"""大肥鱼工具箱：我们自己写的 8 个小插件合成一个，再加上「引用她又 @ 别人」的指向说明和从 AstrNa 搬来的 3 个可选功能。
 
 一个功能一个模块（modules/、astrna/），各有开关，都在 AstrBot 面板的插件配置里改；面板里保存会自动重载插件。
 这里只做三件事：按开关把模块建起来、把 AstrBot 的钩子接给对应模块、插件停用时把 AstrNa 的运行时补丁拆掉。
@@ -18,6 +18,7 @@ from .modules.face import FaceConvert
 from .modules.pat import Pat
 from .modules.platform_hint import PlatformHint
 from .modules.private_only import PrivateOnly
+from .modules.reply_direction import ReplyDirection
 from .modules.selfie import Selfie
 from .modules.sing import Sing
 from .modules.voice import Voice
@@ -31,14 +32,15 @@ OFF_TOOL_TEXT = "这个功能现在关着。用一句话跟对方说现在做不
 @register(
     "astrbot_plugin_dafeiyu",
     "dafeiyu-local",
-    "大肥鱼工具箱：只回私聊、平台提示、表情转换、拍一拍、新人欢迎、发照片、唱歌、发语音，外加 AstrNa 的三个可选功能",
-    "1.1.0",
+    "大肥鱼工具箱：只回私聊、引用她又 @ 别人时说明在跟谁说、平台提示、表情转换、拍一拍、新人欢迎、发照片、唱歌、发语音，外加 AstrNa 的三个可选功能",
+    "1.2.0",
 )
 class DafeiyuToolkit(Star):
     def __init__(self, context: Context, config: dict | None = None):
         super().__init__(context)
         self.config = config if config is not None else {}
         self.private_only = self._build("private_only", PrivateOnly)
+        self.reply_direction = self._build("reply_direction", ReplyDirection)
         self.platform_hint = self._build("platform_hint", PlatformHint)
         self.face = self._build("face", lambda c: FaceConvert(context, c))
         self.pat = self._build("pat", lambda c: Pat(context, c))
@@ -55,7 +57,7 @@ class DafeiyuToolkit(Star):
         self.preamble = self._build("hide_tool_preamble", self._make_preamble, default=False)
         self.tool_history = self._build("tool_history", self._make_tool_history, default=False)
         self.output_limit = self._build("output_limit", self._make_output_limit, default=False)
-        on = [name for name in ("private_only", "platform_hint", "face", "pat", "welcome", "selfie", "sing", "voice",
+        on = [name for name in ("private_only", "reply_direction", "platform_hint", "face", "pat", "welcome", "selfie", "sing", "voice",
                                 "preamble", "tool_history", "output_limit") if getattr(self, name) is not None]
         logger.info(f"[dafeiyu] 开着的功能：{'、'.join(on) or '无'}")
 
@@ -159,6 +161,11 @@ class DafeiyuToolkit(Star):
     async def platform_inject(self, event: AstrMessageEvent, req):
         if self.platform_hint is not None:
             await self.platform_hint.inject_platform(event, req)
+
+    @filter.on_llm_request()
+    async def reply_direction_hint(self, event: AstrMessageEvent, req):
+        if self.reply_direction is not None:
+            await self.reply_direction.add_hint(event, req)
 
     @filter.on_llm_response(priority=1)
     async def face_scrub(self, event: AstrMessageEvent, response):

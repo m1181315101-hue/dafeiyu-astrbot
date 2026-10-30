@@ -6,6 +6,7 @@
 | 配置里的一节 | 功能 | 原来的插件 | 默认 |
 | --- | --- | --- | --- |
 | private_only | 群消息不回，列出的群除外 | astrbot_plugin_private_only 1.1.0 | 开 |
+| reply_direction | 群里有人引用她的话、同时 @ 了别人时，告诉她这句在跟谁说，让她读懂再接 | 新写（v1.2.0） | 开 |
 | platform_hint | 系统提示词末尾标明消息来自 QQ 还是微信 | astrbot_plugin_platform_hint 1.0.0 | 开 |
 | face | 文字表情转真表情、收到的表情/语音/视频翻成文字、群聊身份标记、发送前擦草稿 | astrbot_plugin_face_convert 1.3.1 | 开 |
 | pat | 拍一拍 / 戳一戳时用她的口吻回一句 | astrbot_plugin_pat 1.0.0 | 开 |

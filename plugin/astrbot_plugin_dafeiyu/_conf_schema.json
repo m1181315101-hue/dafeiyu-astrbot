@@ -8,6 +8,14 @@
       "allowed_groups": {"description": "照常回复的群", "type": "list", "default": [], "hint": "一项一个群号：QQ 群号，或微信群的 OneBot 号。"}
     }
   },
+  "reply_direction": {
+    "description": "引用她又 @ 别人时说明在跟谁说",
+    "type": "object",
+    "hint": "群里有人引用她说过的话、同时 @ 了别人时，她照常可以接话；请求模型前给这一轮加一段说明：谁引用了她、@ 的是谁、这句主要是说给谁听的，让她先读懂意思再接。说明不存进聊天历史。微信要连接器 0.13.0 起才认得出 @ 了别人。",
+    "items": {
+      "enabled": {"description": "启用", "type": "bool", "default": true}
+    }
+  },
   "platform_hint": {
     "description": "平台提示",
     "type": "object",
