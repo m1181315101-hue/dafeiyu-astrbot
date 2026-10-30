@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""拍一拍插件测试：只认配置里的平台、只管别人拍她、连着拍只回第一下、每天限次、名字和后缀进提示。
+"""拍一拍（大肥鱼工具箱 pat 模块）测试：只认配置里的平台、只管别人拍她、连着拍只回第一下、每天限次、名字和后缀进提示。
 
 跑法（纯标准库，不需要 AstrBot 环境）：
     python tests/test_pat.py
@@ -12,7 +12,7 @@ import sys
 import types
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MAIN = os.path.join(ROOT, "plugin", "astrbot_plugin_pat", "main.py")
+MAIN = os.path.join(ROOT, "plugin", "astrbot_plugin_dafeiyu", "modules", "pat.py")
 
 
 def _stub(name, **attrs):
@@ -86,7 +86,7 @@ class Event:
 
 
 def plugin(**cfg):
-    p = pm.PatPlugin.__new__(pm.PatPlugin)
+    p = pm.Pat.__new__(pm.Pat)
     p.cfg = {**pm.DEFAULTS, **cfg}
     p.cfg["platforms"] = set(p.cfg["platforms"])
     p.last, p.done = {}, {}

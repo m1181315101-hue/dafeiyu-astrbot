@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""face_convert 回归测试：嘴硬橡皮擦不误删 + file:// 路径解析 + 身份标记认人。
+"""表情转换（大肥鱼工具箱 face 模块，原 face_convert）回归测试：嘴硬橡皮擦不误删 + file:// 路径解析 + 身份标记认人。
 
 跑法（纯标准库，不需要 AstrBot 环境）：
     python tests/test_face_rules.py
@@ -13,7 +13,7 @@ import sys
 import types
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MAIN = os.path.join(ROOT, "plugin", "astrbot_plugin_face_convert", "main.py")
+MAIN = os.path.join(ROOT, "plugin", "astrbot_plugin_dafeiyu", "modules", "face.py")
 
 
 def _stub(name, **attrs):
@@ -90,7 +90,7 @@ def check(name, cond, detail=""):
 
 # 与插件里保持一致的请求词守卫
 REQ = re.compile(r"重发|再发|再说|再听|再看|发一遍|发一张|换一张|重新发|发个")
-HEDGE = mod.FaceConvertPlugin.HEDGE_RE
+HEDGE = mod.FaceConvert.HEDGE_RE
 
 
 def scrub(text):
@@ -126,7 +126,7 @@ check("path linux", P("file:///tmp/a.mp3") == "/tmp/a.mp3", P("file:///tmp/a.mp3
 check("path http", P("https://x/y.mp3") == "https://x/y.mp3", P("https://x/y.mp3"))
 
 # 5) 中文标点归一：顿号当逗号用 / 角括号引号
-NORM = mod.FaceConvertPlugin._normalize_punctuation
+NORM = mod.FaceConvert._normalize_punctuation
 for src, want in (
     # 分句连接词：必须改成逗号
     ("视频本身我这边没声音、也只看得到画面。", "视频本身我这边没声音，也只看得到画面。"),
@@ -169,7 +169,7 @@ class _Event:
     def set_extra(self, k, v): self.extra[k] = v
 
 
-plugin = object.__new__(mod.FaceConvertPlugin)
+plugin = object.__new__(mod.FaceConvert)
 plugin.cfg, plugin.id2name, plugin.admins = dict(mod.DEFAULT_CONFIG), {}, ["astrbot"]
 plugin.owner_ids, plugin.partner_ids = {"default:111", "wechat:222"}, {"default:333"}
 

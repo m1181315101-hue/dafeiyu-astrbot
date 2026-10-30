@@ -42,12 +42,13 @@ docker compose up -d          # 在 dafeiyu/ 里执行，起 astrbot 和 napcat
    填 API Key → 加上模型 `deepseek-chat`。对话模型留空就会用它。
 4. **人格**：把 `persona/大肥鱼-人格-本机版.md` 里的 `{主人}`、`{主人别名}`、`{主人小号QQ}` 换成自己的，
    `---` 之后的正文整段粘贴到面板「人格管理」，设为默认人格。改完要 `docker restart astrbot` 才生效。
-5. **插件**：把要用的插件目录复制到 `astrbot/data/plugins/`，每个插件把 `config.example.json` 复制成 `config.json` 再改，
-   改完 `docker restart astrbot`。没有 `config.json` 时插件用代码里的默认值（token 为空）。
+5. **插件**：把 `plugin/astrbot_plugin_dafeiyu/`（大肥鱼工具箱）复制到 `astrbot/data/plugins/`，重启后在面板 → 插件 → 大肥鱼工具箱 → 配置里
+   填群号、主人的号、翻唱服务的地址和口令，保存后插件自动重载。其余自写插件（`plugin/` 里别的目录）把 `config.example.json`
+   复制成 `config.json` 再改，改完 `docker restart astrbot`；没有 `config.json` 时用代码里的默认值。
 6. **（可选）白名单**：只想让部分人能聊时再设。白名单为空 = 不启用。
    会话 ID 形如 `default:FriendMessage:对方QQ号`（对方私聊她发 `/sid` 也能拿到），
    填进 配置文件 → 访问控制 → 白名单，**记得点保存**。
-   不要把群号填进白名单：白名单一旦非空，没列进去的私聊就全被拦了。只回指定的群用下面的 `astrbot_plugin_private_only`。
+   不要把群号填进白名单：白名单一旦非空，没列进去的私聊就全被拦了。只回指定的群用下面工具箱的「只回私聊」。
 
 NapCat 用 `MODE=astrbot` 启动，会自动生成 OneBot v11 反向 WebSocket 配置，连到 `ws://astrbot:6199/ws`。
 
@@ -68,7 +69,7 @@ NapCat 用 `MODE=astrbot` 启动，会自动生成 OneBot v11 反向 WebSocket �
 - **联网搜索** `provider_settings.web_search=true`、`websearch_provider="anysearch"`，**不填 key 匿名用**。
   匿名额度官方没写，哪天搜不动了，可以申请 AnySearch key 填到 `websearch_anysearch_key`，或者换成 Tavily。
 - **TTS 提供商**：新增 edge_tts，id 填 `edge_tts`，声音 `zh-CN-XiaoyiNeural`（晓伊），其余默认。
-  `provider_tts_settings.enable=false`（关掉“按概率把回复变成语音”，只在有人要时发，见 `astrbot_plugin_voice`）。
+  `provider_tts_settings.enable=false`（关掉“按概率把回复变成语音”，只在有人要时发，见下面工具箱的「发语音」）。
 - NapCat 的 `reportSelfMessage` 保持关闭：挂在主人自己的号上时，**主人自己发的消息她看不到**，
   所以主人没法用这个号跟她聊。打开它的话，主人跟朋友私聊时她也会插嘴。想自己跟她聊，得用另一个 QQ 号。
 
@@ -83,20 +84,23 @@ docker exec astrbot pip install --no-deps --target /AstrBot/data/site-packages e
 完整清单（含第三方插件的来源、版本、启用状态）和改过的配置项见 [`deploy/mac/config/`](../deploy/mac/config/README.md)。
 目前群聊续聊、生活日程和主动消息交给第三方的陪伴插件 `astrbot_plugin_private_companion`，下面的 `astrbot_plugin_group_followup` 已停用（留着备用）。
 
-- `astrbot_plugin_face_convert`：把 `[旺柴]` 这类写法变成真 QQ 表情（见 README）。
-- `astrbot_plugin_private_only`：**私聊都回，群里只回指定的群**。
-  - 允许的群写在 `config.json`：`{"allowed_groups": ["群号", ...]}`，空列表 = 群里都不回。
+我们自己的 8 个小功能（2026-10-30 起）合在 `astrbot_plugin_dafeiyu`（大肥鱼工具箱）里，每个功能在它的插件配置里有一节、一个开关，
+下面括号里是那一节的名字。工具箱的说明见 [`plugin/astrbot_plugin_dafeiyu/README.md`](../plugin/astrbot_plugin_dafeiyu/README.md)。
+
+- 表情转换（`face`）：把 `[旺柴]` 这类写法变成真 QQ 表情（见 README）。
+- 只回私聊（`private_only`）：**私聊都回，群里只回指定的群**。
+  - 允许的群填在 `allowed_groups`，一项一个群号，空列表 = 群里都不回。
   - 其他群的消息在最前面就被拦下，@ 她、发指令都不回；有人唤醒她时日志会记一行 `[private_only] 群里有人唤醒她，已忽略`。
   - 在允许的群里，这些情况会唤醒她：**@ 她**、引用她的消息、消息以 `/` 或唤醒词开头（`cmd_config.json` 的 `wake_prefix`）。
     `@全体成员` 默认也会唤醒她（`platform_settings.ignore_at_all=false`）。
-  - 想所有群都能回，不装这个插件。
+  - 想所有群都能回，把这一节的开关关掉。
 - `astrbot_plugin_group_followup`：**群聊续聊，不用每句都 @**。
   - 谁唤醒了她（@、引用、喊唤醒词），接下来**只有这个人**不用 @ 也能接着聊，别人插话还是要 @。
   - 这些情况结束续聊，之后要重新 @：她最后一次回复后 3 分钟没人接；对方说“拜拜/晚安/去忙了”之类（这句她照回）；
     对方 @ 了别人或引用了别人的消息；她判断这条不是跟她说的（输出 `[NO_REPLY]`，不回）；连续 8 条没 @。
   - 时长和条数：`{"window_seconds": 180, "max_followups": 8}`。
   - 日志里 `[group_followup] 结束续聊 群号/QQ号：原因` 能看到每次为什么结束。
-- `astrbot_plugin_voice`：**有人要她发语音时才发**。给她一个 `tts_speak` 工具，念完发成 QQ 语音条；
+- 发语音（`voice`）：**有人要她发语音时才发**。给她一个 `tts_speak` 工具，念完发成 QQ 语音条；
   - `[旺柴]` 这类表情标记不念。**用语音回答的那一轮只发语音、不再发文字**。每条最多 200 字（约 45 秒，超了在句号处截断，`max_chars`）。
   - **说话也是她的声音**：edge-tts 念完后送去翻唱服务的 `/convert`，用 RVC 换成和唱歌同一个声音。
     **翻唱服务没开、正在翻唱别的歌、或者变声失败时，直接发晓伊原声**，不会发不出去。
@@ -105,7 +109,7 @@ docker exec astrbot pip install --no-deps --target /AstrBot/data/site-packages e
   - **音量**：发出去前统一拉到约 -12 LUFS、峰值压在 -1dB（`loudness_lufs`，默认 -11）。晓伊原声只有 -22 左右，偏小。
   - AstrBot 4.29 自带的 edge_tts 提供商会把 User-Agent 换掉，导致微软回 403；插件每次发语音前会把它改回来。
   - 实测（M4）一句 30 字：变声后 3.7 秒发出（服务刚启动后的第一条要加载模型，约 10 秒）；退回晓伊 2.3 秒。
-- `astrbot_plugin_sing`：有人让她唱歌时调 `sing_song` 工具，请求翻唱服务，一两分钟后发来一段语音条。
+- 唱歌（`sing`）：有人让她唱歌时调 `sing_song` 工具，请求翻唱服务，一两分钟后发来一段语音条。
   服务没开、没有模型、正在唱别的歌时，她会如实说。`token` 要和 `cover/config.json` 的一样。
 
 ## 翻唱服务（`cover/`）
@@ -118,7 +122,7 @@ cd dafeiyu/cover
 uv venv -p 3.10 .venv
 uv pip install -p .venv/bin/python -r requirements.txt
 cp config.example.json config.json
-python3 -c "import secrets; print(secrets.token_urlsafe(24))"   # 生成 token，填进 config.json 的 token，以及两个插件的 token / rvc_token
+python3 -c "import secrets; print(secrets.token_urlsafe(24))"   # 生成 token，填进 config.json 的 token，以及工具箱的 sing.token / voice.rvc_token
 ```
 
 - 首次加载 RVC 时 rvc-python 会自动下载 hubert、rmvpe 基础模型到它的包目录。

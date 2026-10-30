@@ -32,17 +32,11 @@
 ## 📦 内容
 
 ```
-plugin/astrbot_plugin_face_convert/   ← 核心插件（AstrBot 插件，直接可装）
+plugin/astrbot_plugin_dafeiyu/        ← 核心插件「大肥鱼工具箱」（直接可装）：表情转换与收信翻译、只回私聊、平台提示、拍一拍、新人欢迎、
+                                         发照片 / 唱歌 / 发语音三个工具，每个功能在插件配置里单独开关；另带从 AstrNa 搬来的三个可选功能
 plugin/astrbot_plugin_schedule_awareness/ ← 🧭 把她的定时任务实时注入系统提示词
 plugin/astrbot_plugin_bili_activity/   ← 自主浏览、持续目标、截图、来源笔记与研究方法
 plugin/astrbot_plugin_group_followup/  ← 💬 群聊续聊：@ 一次之后同一个人不用每句都 @
-plugin/astrbot_plugin_private_only/    ← 🔒 私聊都回，群里只回指定的群
-plugin/astrbot_plugin_voice/           ← 🔊 有人要语音才发：edge-tts 念 + RVC 换成她的声音
-plugin/astrbot_plugin_sing/            ← 🎤 唱歌：调本机翻唱服务，发来一段副歌语音条
-plugin/astrbot_plugin_selfie/          ← 📷 相册：自拍、生活照、和同事的合照，按对照表挑最贴的一张原样发
-plugin/astrbot_plugin_platform_hint/   ← 🧭 告诉她这条消息来自 QQ 还是微信
-plugin/astrbot_plugin_welcome/         ← 👋 新人进群时用她自己的口吻欢迎一句并 @ 新人（只在指定的群）
-plugin/astrbot_plugin_pat/             ← 👉 有人拍一拍（微信）或戳一戳（QQ）她时，用她自己的口吻回一句（只在指定的平台）
 persona/大肥鱼-人格.md                 ← 人格提示词（可直接导入 AstrBot）
 persona/大肥鱼-人格-本机版.md          ← 挂在主人自己号上的变体（多条回复 / 表情 / 护主人）
 persona/课程记忆-模板.md               ← "让她自己悟"的教学记忆模板
@@ -74,7 +68,7 @@ assets/voice-demo/                     ← 音色样本与复刻链路说明
 ## 🚀 快速开始
 
 1. 按 `docs/部署指南.md` 搭好 AstrBot + NapCat + QQ 小号
-2. 把 `plugin/astrbot_plugin_face_convert/` 放进 AstrBot 的 `data/plugins/`
+2. 把 `plugin/astrbot_plugin_dafeiyu/` 放进 AstrBot 的 `data/plugins/`，在面板 → 插件 → 大肥鱼工具箱 → 配置里按需开关、填群号
    （插件会自动读取你 AstrBot 配置里的 DashScope key，用于语音/视频理解）
 3. 在 AstrBot 里新建人格：把 `persona/大肥鱼-人格.md` 的正文**整段粘贴**（v2 单块提示词，无需拼接；详见导入指南）
 4. 想要语音条 / 记忆 / 自定义音色？照 `docs/导入指南.md` 继续
@@ -85,7 +79,9 @@ assets/voice-demo/                     ← 音色样本与复刻链路说明
 
 ## 🔌 插件做了什么
 
-`astrbot_plugin_face_convert` 是一个「出站整形 + 入站翻译」双通道插件：
+`astrbot_plugin_dafeiyu`（大肥鱼工具箱）把我们自己写的小功能放在一个插件里，一个功能一个模块、一个开关，
+功能清单见 [它的 README](plugin/astrbot_plugin_dafeiyu/README.md)。2026-10-30 之前它们是 8 个独立插件，下面说的表情转换就是原来的
+`astrbot_plugin_face_convert`，现在是工具箱里的 `face` 一节，一个「出站整形 + 入站翻译」双通道功能：
 
 **出站（她说什么）**
 - `[旺柴]` `[吃瓜]` 等中括号表情名 → **真正的 QQ 表情段**（QQ 不会渲染机器人发的纯文本表情码）
@@ -104,12 +100,12 @@ assets/voice-demo/                     ← 音色样本与复刻链路说明
   让她分得清谁在说话；标记只进她的上下文，**对方看不到**；群里只喊名字没内容时，自动补
   「（喊了你一声）」的回应由头
 
-**可调参数（可选）**：插件目录下放 `config.json` 可覆盖 `hedge_eraser`（嘴硬橡皮擦开关）、
-`face_cooldown_minutes` 和媒体处理参数；身份标记认人用 `owner_ids`（主人）、`partner_ids`（女主人），
-格式见 `config.example.json`：写「平台 ID:号」只在那个平台算（微信连接器的号建议这样写，免得和某个 QQ 号撞上），
+**可调参数（可选）**：在面板 → 插件 → 大肥鱼工具箱 → 配置 → `face` 里改 `hedge_eraser`（嘴硬橡皮擦开关）、
+`face_cooldown_minutes` 和媒体处理参数；身份标记认人用 `owner_ids`（主人）、`partner_ids`（女主人）：
+写「平台 ID:号」只在那个平台算（微信连接器的号建议这样写，免得和某个 QQ 号撞上），
 AstrBot 的 `admins_id` 一直算主人。**3～5 分钟视频已作为默认配置**，
-旧 `config.json` 会覆盖新默认值，升级时请按 [视频识别说明](docs/视频识别.md) 合并更新。
-回归测试：`python tests/test_face_rules.py`、`python tests/test_video_processing.py`。
+面板里已经存过的旧值不会被自动改写，升级时请按 [视频识别说明](docs/视频识别.md) 核对。
+回归测试：`python tests/test_face_rules.py`、`python tests/test_video_processing.py`；工具箱整体的测试见插件目录下的 `tests/`。
 
 ## 🧩 推荐搭配（可选的"花活"插件）
 
@@ -138,6 +134,7 @@ AstrBot 的 `admins_id` 一直算主人。**3～5 分钟视频已作为默认配
 
 - **大肥鱼**：DeepSeek 蓝鲸的社区二创（"你这只吃白饭的蓝色大肥鱼"梗），非官方角色
 - 角色设定规范参考社区项目 [YunYueSama/codex-deepseek-pet](https://github.com/YunYueSama/codex-deepseek-pet)
+- 大肥鱼工具箱里的过场白隐藏、工具历史压缩、输出字数限制原样搬自 [Sisyphbaous-DT-Project/astrbot_plugin_AstrNa](https://github.com/Sisyphbaous-DT-Project/astrbot_plugin_AstrNa)（MIT，许可证原文在 `plugin/astrbot_plugin_dafeiyu/astrna/LICENSE`）
 - 依赖生态：[AstrBot](https://github.com/AstrBotDevs/AstrBot) · [NapCat](https://github.com/NapNeko/NapCatQQ) · [livingmemory](https://github.com/lxfight-s-Astrbot-Plugins/astrbot_plugin_livingmemory) · [proactive_chat](https://github.com/Pancakes-Labs/astrbot_plugin_proactive_chat)
 
 ## 📄 License

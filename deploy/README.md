@@ -86,7 +86,8 @@ QQ 用户 ⇄ 腾讯服务器 ⇄ NapCat(Docker) ⇄ WebSocket(6199) ⇄ AstrBot
 
 ## 插件运行参数（可选）
 
-在 `astrbot/data/plugins/astrbot_plugin_face_convert/` 下放 `config.json` 可覆盖默认值：
+表情转换、收信翻译这些参数（原来放在 `astrbot_plugin_face_convert/config.json`）从 2026-10-30 起在大肥鱼工具箱的插件配置里：
+面板 → 插件 → 大肥鱼工具箱 → 配置 → `face`，默认值如下：
 
 ```json
 {"hedge_eraser": true, "face_cooldown_minutes": 10, "max_media_mb": 80,
@@ -97,7 +98,7 @@ QQ 用户 ⇄ 腾讯服务器 ⇄ NapCat(Docker) ⇄ WebSocket(6199) ⇄ AstrBot
 
 `hedge_eraser=false` 可整体关闭"嘴硬橡皮擦"；含"重发/再说一遍"等请求词的回复本来就永不误删。
 
-旧配置不会自动改写，请合并更新后重载插件或重启 AstrBot。详见 [3～5 分钟视频识别](../docs/视频识别.md)。
+面板里已经存过的值不会被自动改写；面板里保存后插件自动重载。详见 [3～5 分钟视频识别](../docs/视频识别.md)。
 
 ## 手机控制（PhoneMCP + 本地模拟器）
 

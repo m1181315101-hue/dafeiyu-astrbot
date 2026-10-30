@@ -13,7 +13,7 @@ import sys
 import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-spec = importlib.util.spec_from_file_location("album", os.path.join(ROOT, "plugin", "astrbot_plugin_selfie", "album.py"))
+spec = importlib.util.spec_from_file_location("album", os.path.join(ROOT, "plugin", "astrbot_plugin_dafeiyu", "modules", "album.py"))
 album = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(album)
 

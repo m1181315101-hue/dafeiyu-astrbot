@@ -1,6 +1,6 @@
 # 翻唱 / 变声服务
 
-跑在 Mac 本机（Apple GPU）的小服务，给 `astrbot_plugin_sing`（唱歌）和 `astrbot_plugin_voice`（说话变声）用：
+跑在 Mac 本机（Apple GPU）的小服务，给大肥鱼工具箱（`plugin/astrbot_plugin_dafeiyu/`）的唱歌（`sing`）和发语音（`voice`，说话变声）用：
 
 - `POST /cover`：找歌 → 挑一段副歌 → Demucs 分离人声 → RVC 换成她的声音 → 混回伴奏 → 返回 mp3
 - `POST /convert`：把 TTS 念出来的说话声换成她的声音

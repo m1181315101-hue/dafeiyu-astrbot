@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""新人欢迎插件测试：只认配置里的群、小号自己进群不欢迎、短时间进好几个人合成一句、每天限次、@ 新人。
+"""新人欢迎（大肥鱼工具箱 welcome 模块）测试：只认配置里的群、小号自己进群不欢迎、短时间进好几个人合成一句、每天限次、@ 新人。
 
 跑法（纯标准库，不需要 AstrBot 环境）：
     python tests/test_welcome.py
@@ -12,7 +12,7 @@ import sys
 import types
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MAIN = os.path.join(ROOT, "plugin", "astrbot_plugin_welcome", "main.py")
+MAIN = os.path.join(ROOT, "plugin", "astrbot_plugin_dafeiyu", "modules", "welcome.py")
 
 
 def _stub(name, **attrs):
@@ -107,7 +107,7 @@ class Event:
 
 
 def plugin(**cfg):
-    p = wm.WelcomePlugin.__new__(wm.WelcomePlugin)
+    p = wm.Welcome.__new__(wm.Welcome)
     p.cfg = {**wm.DEFAULTS, "merge_seconds": 0.05, **cfg}
     p.cfg["groups"] = set(p.cfg["groups"])
     p.pending, p.done = {}, {}

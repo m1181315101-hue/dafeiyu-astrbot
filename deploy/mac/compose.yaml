@@ -1,7 +1,7 @@
 # 大肥鱼 · 本机（macOS / Docker Desktop）版，说明见 docs/本机部署-macOS.md
 # 改自 deploy/compose.yaml：
 #   - 数据目录改为本目录下的相对路径（原版是 /opt/dafeiyu/...）
-#   - 去掉两条百炼语音补丁的 bind-mount（本机版语音走 edge-tts + RVC，见 astrbot_plugin_voice）
+#   - 去掉两条百炼语音补丁的 bind-mount（本机版语音走 edge-tts + RVC，见大肥鱼工具箱的发语音）
 #   - 直接用官方 AstrBot 镜像；edge-tts 另装到 data/site-packages，imageio-ffmpeg 视频识别才用得到
 #   - 多一个 ncm-api（网易云接口，cover profile，翻唱服务用）
 # 用法：复制到工作目录，在那里执行 docker compose up -d

@@ -1,5 +1,0 @@
-{
-  "service_url": "http://host.docker.internal:8790",
-  "token": "",
-  "timeout_seconds": 400
-}

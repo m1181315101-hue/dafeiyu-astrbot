@@ -1,0 +1,135 @@
+{
+  "private_only": {
+    "description": "只回私聊",
+    "type": "object",
+    "hint": "群消息在最前面就终止，不触发指令、插件和 LLM；下面列出的群照常回复。私聊不受影响。",
+    "items": {
+      "enabled": {"description": "启用", "type": "bool", "default": true},
+      "allowed_groups": {"description": "照常回复的群", "type": "list", "default": [], "hint": "一项一个群号：QQ 群号，或微信群的 OneBot 号。"}
+    }
+  },
+  "platform_hint": {
+    "description": "平台提示",
+    "type": "object",
+    "hint": "在系统提示词末尾标一行【当前平台】，免得她在微信里说自己在 QQ、认主人时把微信的号当成 QQ 号。",
+    "items": {
+      "enabled": {"description": "启用", "type": "bool", "default": true},
+      "platforms": {"description": "平台名字", "type": "list", "default": ["wechat=微信", "webchat=网页面板"], "hint": "一项一个「平台ID=名字」。"},
+      "default_name": {"description": "没列出的平台叫什么", "type": "string", "default": "QQ"}
+    }
+  },
+  "face": {
+    "description": "表情转换与收信翻译",
+    "type": "object",
+    "hint": "回复里的 [流泪][doge] 换成真表情（微信上换成微信认的表情名）；收到的表情、语音、视频翻成文字给她看；群聊里给发言人标身份；发送前擦掉草稿、嘴硬小尾巴和 meta 口癖。",
+    "items": {
+      "enabled": {"description": "启用", "type": "bool", "default": true},
+      "text_emoji_platforms": {"description": "用文字表情的平台", "type": "list", "default": ["wechat"], "hint": "这些平台（AstrBot 里的平台 ID）不转 QQ 表情段，改成该平台认的「[名字]」文字。"},
+      "owner_ids": {"description": "主人的号", "type": "list", "default": [], "hint": "身份标记里标「主人」。写「号」在所有平台都算，写「平台ID:号」只在那个平台算。AstrBot 的管理员一直算主人。"},
+      "partner_ids": {"description": "女主人的号", "type": "list", "default": [], "hint": "身份标记里标「女主人」，写法同上。"},
+      "hedge_eraser": {"description": "擦掉嘴硬小尾巴", "type": "bool", "default": true, "hint": "擦掉「看不清 / 模模糊糊 / 隐约听见」这类回声型小尾巴；她请对方重发时不擦。"},
+      "face_cooldown_minutes": {"description": "表情冷却（分钟）", "type": "int", "default": 10, "hint": "同一个会话里最近用过的表情，这段时间内不再连着用。"},
+      "max_media_mb": {"description": "语音视频最大（MB）", "type": "int", "default": 80},
+      "video_timeout_s": {"description": "视频处理总时限（秒）", "type": "int", "default": 300},
+      "video_max_duration_s": {"description": "视频最多看前多少秒", "type": "int", "default": 300},
+      "video_max_frames": {"description": "视频最多抽几帧", "type": "int", "default": 16},
+      "video_audio_chunk_s": {"description": "视频声音每段几秒", "type": "int", "default": 60},
+      "video_workers": {"description": "视频并行处理数", "type": "int", "default": 2},
+      "vl_timeout_s": {"description": "看图模型超时（秒）", "type": "int", "default": 60},
+      "asr_timeout_s": {"description": "语音转写超时（秒）", "type": "int", "default": 60},
+      "max_concurrent_media": {"description": "同时处理几条语音或视频", "type": "int", "default": 1},
+      "media_queue_timeout_s": {"description": "排队等待上限（秒）", "type": "int", "default": 10}
+    }
+  },
+  "pat": {
+    "description": "拍一拍",
+    "type": "object",
+    "hint": "有人拍一拍（微信）或戳一戳（QQ）她时，用她自己的口吻回一句；只在下面列出的平台。",
+    "items": {
+      "enabled": {"description": "启用", "type": "bool", "default": true},
+      "platforms": {"description": "回哪些平台的", "type": "list", "default": ["wechat"], "hint": "AstrBot 里的平台 ID：微信是 wechat，QQ 一般是 default。"},
+      "cooldown_seconds": {"description": "连拍冷却（秒）", "type": "int", "default": 60, "hint": "同一个人在这么多秒里连着拍，只回第一下。"},
+      "daily_limit": {"description": "每个会话每天最多回几次", "type": "int", "default": 20},
+      "prompt": {"description": "给她的提示", "type": "text", "default": "", "hint": "留空用默认。可以用 {name}（拍的人）和 {suffix}（拍一拍的后缀）。"}
+    }
+  },
+  "welcome": {
+    "description": "新人欢迎",
+    "type": "object",
+    "hint": "新人进群时让她用自己的口吻欢迎一句并 @ 新人；只在下面列出的群。",
+    "items": {
+      "enabled": {"description": "启用", "type": "bool", "default": true},
+      "groups": {"description": "开欢迎的群", "type": "list", "default": [], "hint": "一项一个「平台ID:群号」，QQ 平台 ID 一般是 default，微信是 wechat；只写群号就不分平台。"},
+      "merge_seconds": {"description": "合并几秒内进群的人", "type": "int", "default": 20},
+      "at_newcomer": {"description": "欢迎时 @ 新人", "type": "bool", "default": true},
+      "daily_limit": {"description": "每个群每天最多欢迎几次", "type": "int", "default": 10},
+      "prompt": {"description": "给她的提示", "type": "text", "default": "", "hint": "留空用默认。可以用 {count}（人数）、{names}（名字）、{inviter}（谁拉进来的）。"}
+    }
+  },
+  "selfie": {
+    "description": "发照片（send_selfie 工具）",
+    "type": "object",
+    "hint": "有人要看她的自拍、生活照、和同事的合照时，从相册里挑最贴的一张原样发出去。关掉后这个工具不再给她用。",
+    "items": {
+      "enabled": {"description": "启用", "type": "bool", "default": true},
+      "photo_dir": {"description": "照片文件夹", "type": "string", "default": "", "hint": "留空用 data/plugin_data/astrbot_plugin_selfie/photos/。往里加图、改 photos.json 都不用重启。"}
+    }
+  },
+  "sing": {
+    "description": "唱歌（sing_song 工具）",
+    "type": "object",
+    "hint": "有人点歌时，调 Mac 上的翻唱服务，用她的声音唱一段副歌发成语音条。关掉后这个工具不再给她用。",
+    "items": {
+      "enabled": {"description": "启用", "type": "bool", "default": true},
+      "service_url": {"description": "翻唱服务地址", "type": "string", "default": "http://host.docker.internal:8790"},
+      "token": {"description": "翻唱服务口令", "type": "string", "default": "", "hint": "要和翻唱服务 config.json 里的一致。"},
+      "timeout_seconds": {"description": "等翻唱结果最多几秒", "type": "int", "default": 400}
+    }
+  },
+  "voice": {
+    "description": "发语音（tts_speak 工具）",
+    "type": "object",
+    "hint": "有人要她发语音时，用 TTS 念出来、变成她的声音、发成语音条。关掉后这个工具不再给她用。",
+    "items": {
+      "enabled": {"description": "启用", "type": "bool", "default": true},
+      "tts_provider_id": {"description": "TTS 提供商 ID", "type": "string", "default": "edge_tts"},
+      "max_chars": {"description": "每条最多念几个字", "type": "int", "default": 150},
+      "rvc_url": {"description": "变声服务地址", "type": "string", "default": "", "hint": "翻唱服务的 /convert，把 TTS 原声换成她的声音；留空就发 TTS 原声。"},
+      "rvc_token": {"description": "变声服务口令", "type": "string", "default": ""},
+      "rvc_timeout_seconds": {"description": "变声最多等几秒", "type": "int", "default": 30},
+      "loudness_lufs": {"description": "响度（LUFS）", "type": "float", "default": -11},
+      "session_tts_commands": {"description": "启用「语音开 / 语音关 / 语音状态」指令", "type": "bool", "default": true, "hint": "按会话开关 AstrBot 自带的自动语音条，跟上面的 tts_speak 工具是两回事。"}
+    }
+  },
+  "hide_tool_preamble": {
+    "description": "隐藏工具调用前的过场白（来自 AstrNa）",
+    "type": "object",
+    "hint": "她调工具前顺口说的「等我翻翻相册」这类话不发出去，只发最终回答；这句话仍留在她自己的上下文里。注意：同一轮里她先写好回复再调工具（记东西、发表情包）时，那段回复也会被扣下，只发工具之后的回答。开启流式输出的会话不处理。",
+    "items": {
+      "enabled": {"description": "启用", "type": "bool", "default": false},
+      "all_groups": {"description": "所有群聊都隐藏", "type": "bool", "default": false},
+      "all_private": {"description": "所有私聊都隐藏", "type": "bool", "default": false},
+      "umos": {"description": "只在这些会话隐藏", "type": "list", "default": [], "hint": "一项一个会话 UMO（用 /sid 查）。上面三项任一命中即生效；都没设就不影响任何会话。"}
+    }
+  },
+  "tool_history": {
+    "description": "工具调用历史压缩（来自 AstrNa）",
+    "type": "object",
+    "hint": "工具回合结束后，把历史里已经用过的大段工具结果（搜索、网页这类）换成短占位符，后面每轮不再重复发。当前这一轮的工具结果不受影响。开启后留意记忆插件的注入是否照常。",
+    "items": {
+      "enabled": {"description": "启用", "type": "bool", "default": false}
+    }
+  },
+  "output_limit": {
+    "description": "输出字数限制（来自 AstrNa）",
+    "type": "object",
+    "hint": "最终文字回复超过字数时，用清洗模型按人格改写成短回复；没选清洗模型或调用失败就硬截断。工具调用、图片语音、定时任务不处理。开启后非白名单会话会关掉本轮流式输出。",
+    "items": {
+      "enabled": {"description": "启用", "type": "bool", "default": false},
+      "max_chars": {"description": "最多几个字", "type": "int", "default": 50, "hint": "中文、标点、emoji、换行都算一个字。"},
+      "provider_id": {"description": "清洗模型（提供商 ID）", "type": "string", "default": "", "hint": "建议用便宜快速的小模型；留空就硬截断。"},
+      "persona_id": {"description": "参考人格 ID", "type": "string", "default": "", "hint": "留空用当前会话的人格。"},
+      "whitelist_umos": {"description": "不限制的会话", "type": "list", "default": [], "hint": "一项一个会话 UMO（用 /sid 查），这些会话不限字数。"}
+    }
+  }
+}

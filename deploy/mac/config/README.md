@@ -8,12 +8,8 @@
 
 | 插件 | 版本 | 来源 | 状态 | 用途 |
 |---|---|---|---|---|
-| `astrbot_plugin_face_convert` | v1.2.1 | 本仓库 `plugin/` | 启用 | `[旺柴]` 这类写法变成真 QQ 表情 |
-| `astrbot_plugin_private_only` | v1.1.0 | 本仓库 `plugin/` | 启用 | 私聊都回，群里只回指定的群 |
-| `astrbot_plugin_voice` | v1.0.0 | 本仓库 `plugin/` | 启用 | `tts_speak`：有人要语音才发，edge-tts + RVC |
-| `astrbot_plugin_sing` | v1.0.0 | 本仓库 `plugin/` | 启用 | `sing_song`：调本机翻唱服务 |
-| `astrbot_plugin_selfie` | v1.0.0 | 本仓库 `plugin/` | 启用 | `send_selfie`：有人要自拍就从照片文件夹挑一张原样发 |
-| `astrbot_plugin_platform_hint` | v1.0.0 | 本仓库 `plugin/` | 启用 | 系统提示末尾标【当前平台】：QQ 还是微信 |
+| `astrbot_plugin_dafeiyu`（大肥鱼工具箱） | v1.0.0 | 本仓库 `plugin/` | 启用 | 2026-10-30 由下面 8 个自写插件合成，每个功能在插件配置里单独开关：只回私聊、平台提示、表情转换与收信翻译、拍一拍、新人欢迎、`send_selfie`、`sing_song`、`tts_speak`；另带从 AstrNa 搬来的过场白隐藏、工具历史压缩、输出字数限制（关着） |
+| `astrbot_plugin_face_convert` 等 8 个 | — | 本仓库 `plugin/`（已删） | **已合并** | face_convert、private_only、voice、sing、selfie、platform_hint、welcome、pat，合进上面的工具箱，旧目录不再用 |
 | `astrbot_plugin_group_followup` | v1.0.0 | 本仓库 `plugin/` | **停用** | 群聊续聊，现在交给陪伴插件 |
 | `astrbot_plugin_private_companion`（陪伴面板） | 6.5.6 | [menglimi/astrbot_plugin_private_companion](https://github.com/menglimi/astrbot_plugin_private_companion)（仓库未声明许可证） | 启用 | 生活日程、关系、主动消息、群聊续聊与读空气、TTS 增强 |
 | `meme_manager`（表情包） | 5.2.9 | [anka-afk/astrbot_plugin_meme_manager](https://github.com/anka-afk/astrbot_plugin_meme_manager)（MIT） | 启用 | 表情包图片；只改了一项：打开「表情使用频率」提示（`generation.prompt.quantity_guidance_enabled = true`，用它默认的「每约 4 条回复配 1 张图」），其余默认 |
@@ -44,7 +40,7 @@
   - 群聊高强度收口（`enable_group_high_intensity_mode`）关掉了：开着时一分钟内被叫 3 次就把后面的合并成一轮处理，实测有写好的回复没发出去、合并缓冲里的消息也没再出来。关掉后每个叫她的人单独处理，热闹时回得多一些。
   - 陪伴插件的 TTS 增强（`voice_action_config.enable_tts_enhancement`）关掉了：它每轮按 25% 的概率接管语音，接管那一轮会把回复类型从「模型生成」改成「普通结果」（防止 AstrBot 自带 TTS 再处理一遍），可 AstrBot 的分段回复只对「模型生成」的回复生效，于是约三成回复几行字挤成一条发。它用的还是 edge_tts（晓伊）的声音，一天只真发出过 6 条语音；要语音时走本仓库的 `tts_speak`（NORA 的声音），不受影响。
   - 主动私聊的「连发」（`private_followup_config.enable_proactive_burst`）2026-10-30 关掉了：开着时一次主动会连着发两条（间隔 45–180 秒），实测有人 4 分钟里收到两条。在陪伴面板里手动打开了「允许主动私聊」的朋友，每天主动上限从 3 改成 1（这一项存在插件数据 `companions.json` 里，不在配置里，导出看不到）。
-  - 陪伴插件自带的被动戳一戳（`reactive_poke_config.enable_reactive_poke`）保持关闭（默认值）：它生成回复时不带人格（系统提示只有一句「你是一位正在陪伴用户的 AI 角色」），还有 30% 的概率直接回「哎呀，被发现了~」这类预设句；反戳走的是 QQ 的接口，微信上不对。拍一拍 / 戳一戳交给本仓库的 `astrbot_plugin_pat`。
+  - 陪伴插件自带的被动戳一戳（`reactive_poke_config.enable_reactive_poke`）保持关闭（默认值）：它生成回复时不带人格（系统提示只有一句「你是一位正在陪伴用户的 AI 角色」），还有 30% 的概率直接回「哎呀，被发现了~」这类预设句；反戳走的是 QQ 的接口，微信上不对。拍一拍 / 戳一戳交给本仓库大肥鱼工具箱的「拍一拍」（`pat`）。
   - `basic_config.enable_proactive_only_mode`（仅保留主动能力）要**保持关闭**（默认值，所以导出里没有它）：开着的话群聊的复读、唤醒、续接、插话和私聊里的语音都会停掉。
   - `experimental_motivation_config.enable_reaction_expression_experiment`（表情表达实验）关着（默认值，所以导出里没有它）。
   - 陪伴插件自带的 `pc_find_reaction_image`（找反应图）工具要在 AstrBot 面板「函数工具」里**停用**（存在全局偏好 `inactivated_llm_tools` 里）。它用的是陪伴插件自己的素材库，没往里导图时是空的；可它的说明会鼓励模型「素材库可能是空的也可以试试」，于是有人要表情包时，她大多去调这个工具，拿到「素材库为空」，图就没了，表情包插件根本轮不到。以后往陪伴插件的素材库导了图再打开。
@@ -56,7 +52,8 @@
 - `memory_companion` 的向量检索（2026-10-30）：原来只按关键词找记忆，平均每次回复有 20 多条候选因为「关键词命中太弱」被挡掉（比如聊「吃火锅」找不到写成「去海底捞」的那条）。在 AstrBot「服务提供商」里加了阿里云百炼的 Embedding（`dashscope_embedding`，`qwen3.7-text-embedding-flash`，1024 维）和 Rerank（`bailian_rerank`，`qwen3.7-text-rerank`），插件配置里 `retrieval.embedding_enabled` 打开，`retrieval.embedding_provider_id`、`retrieval.rerank_provider_id` 填这两个 ID，其余检索参数默认（相似度门槛 0.34：这个模型下不相关的两句也有 0.39 左右，靠重排把不相关的筛掉）。存量记忆由插件后台每 5 分钟补 50 条向量。密钥只在本机 AstrBot 里。
 - **`memory_companion` 有一处本地改动（2026-10-29，插件升级会被覆盖，升级后要重新改）**：`core/summarizer.py` 的 `summary_quality` 里，总结只要出现「某用户、某人、有人、群成员」这类词就判成低质量、进不了长期记忆；但它按字面找「有人」，「没有人」「所有人」也会被拦。微信群两天里 134 次被拒全是这条，约三分之一（46 条）是这么误判的。改法：查这些词之前，先把「没有人」「所有人」「只有人」「有人气」从总结里去掉再查，其余规则不动。这个问题还没提给作者。
 - **AstrBot 在跑的时候，别在 macOS 本机直接打开 `data/` 下的 SQLite 库**（`data_v4.db`、插件的 `.db`），只读也不行：这些库是 WAL 模式，锁和共享内存跨不过 Docker Desktop 的虚拟机，本机一关库就可能把容器正在写的 WAL 截掉。2026-10-30 这样坏过一次 `data_v4.db` 的定时任务表。要看就 `docker cp` 一份出来看拷贝，要改就先停 AstrBot。
-- 本仓库自己的插件：各插件目录下的 `config.example.json` 复制成 `config.json`。`astrbot_plugin_selfie` 的照片放进 `data/plugin_data/astrbot_plugin_selfie/photos/`。
+- 大肥鱼工具箱：配置在面板 → 插件 → 大肥鱼工具箱 → 配置里改（存在 `data/config/astrbot_plugin_dafeiyu_config.json`），保存后插件自动重载。要填的有：只回私聊的群、欢迎的群、拍一拍的平台、主人和女主人的号、翻唱服务和变声服务的地址与口令（和 `cover/config.json` 的 `token` 一样）。照片放进 `data/plugin_data/astrbot_plugin_selfie/photos/`（沿用原来的文件夹）。
+- 其余还在 `plugin/` 里的自写插件（`group_followup` 等）：插件目录下的 `config.example.json` 复制成 `config.json`。
 
 ## 人格
 

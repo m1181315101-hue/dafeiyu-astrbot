@@ -1,7 +1,0 @@
-name: astrbot_plugin_sing
-display_name: 唱歌
-desc: 给她一个 sing_song 工具：有人点歌时，调 Mac 上的翻唱服务，用她的声音唱一段副歌发成语音条
-version: v1.0.0
-author: dafeiyu-local
-support_platforms:
-  - aiocqhttp

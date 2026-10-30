@@ -627,8 +627,9 @@ class BiliActivity(Star):
 
     def face_plugin(self):
         for metadata in self.context.get_all_stars():
-            if metadata.name == "astrbot_plugin_face_convert" and metadata.star_cls:
-                instance = metadata.star_cls
+            if metadata.name in ("astrbot_plugin_dafeiyu", "astrbot_plugin_face_convert") and metadata.star_cls:
+                # 大肥鱼工具箱的看图、听写在它的 face 模块里；老版本是单独的表情插件本身
+                instance = getattr(metadata.star_cls, "face", None) or metadata.star_cls
                 if hasattr(instance, "_vl_describe") and hasattr(instance, "_asr_file"):
                     return instance
         return None

@@ -1,6 +1,0 @@
-{
-  "groups": ["default:<QQ 群号>", "wechat:<微信群的 OneBot 号>"],
-  "merge_seconds": 20,
-  "at_newcomer": true,
-  "daily_limit": 10
-}

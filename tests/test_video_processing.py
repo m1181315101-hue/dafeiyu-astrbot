@@ -52,7 +52,7 @@ def load_plugin():
         modules[name] = types.ModuleType(name)
         vars(modules[name]).update(attrs)
     spec = importlib.util.spec_from_file_location(
-        "video_test_plugin", ROOT / "plugin/astrbot_plugin_face_convert/main.py"
+        "video_test_plugin", ROOT / "plugin/astrbot_plugin_dafeiyu/modules/face.py"
     )
     module = importlib.util.module_from_spec(spec)
     with patch.dict(sys.modules, modules):
@@ -65,7 +65,7 @@ logging.basicConfig(level=logging.CRITICAL)
 
 
 def plugin(**config):
-    instance = mod.FaceConvertPlugin(None)
+    instance = mod.FaceConvert(None, {})
     instance.cfg.update(config)
     instance.dashscope_key = "test-only"
     return instance
