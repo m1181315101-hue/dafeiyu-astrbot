@@ -6,6 +6,8 @@
 | 配置里的一节 | 功能 | 原来的插件 | 默认 |
 | --- | --- | --- | --- |
 | private_only | 群消息不回，列出的群除外 | astrbot_plugin_private_only 1.1.0 | 开 |
+| group_brevity | 群里叫她的这句只有几个字时，提醒她一条消息接住，别拆成好几条 | 新写（v1.4.0） | 开 |
+| habit_check | 每天数一遍她最近的回复，挑出最突出的小毛病（群里回太长、老用同一个开头、口头禅、括号动作）写成提醒 | 新写（v1.4.0） | 开 |
 | reply_direction | 群里有人引用她的话、同时 @ 了别人时，告诉她这句在跟谁说，让她读懂再接 | 新写（v1.2.0） | 开 |
 | platform_hint | 系统提示词末尾标明消息来自 QQ 还是微信 | astrbot_plugin_platform_hint 1.0.0 | 开 |
 | face | 文字表情转真表情、收到的表情/语音/视频翻成文字、群聊身份标记、发送前擦草稿 | astrbot_plugin_face_convert 1.3.1 | 开 |

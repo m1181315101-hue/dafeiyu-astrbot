@@ -1,5 +1,6 @@
 {
   "basic_config.bot_name": "大肥鱼",
+  "basic_config.default_style": "嘴硬俏皮",
   "basic_config.enable_daily_token_soft_limit": false,
   "basic_config.target_user_ids": [
     "<主人小号QQ>",
@@ -59,6 +60,8 @@
   "legacy_compat_config.enable_segmented_proactive_reply": true,
   "message_debounce_config.image_message_debounce_seconds": 4.0,
   "message_debounce_config.text_message_debounce_seconds": 5.0,
+  "timer_config.quote_skip_short_reply_chars": 30,
+  "memory_habit_config.expression_group_learning_source_mode": "all",
   "group_wakeup_config.group_wakeup_short_text_wait_seconds": 6.0,
   "group_high_intensity_config.group_high_intensity_merge_seconds": 3,
   "group_high_intensity_config.enable_group_high_intensity_mode": false,

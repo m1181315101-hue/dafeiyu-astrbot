@@ -112,7 +112,8 @@ def test_voice_sing_selfie_defaults_match_schema():
     sing = mod("sing").Sing({})
     d = defaults("sing")
     assert (sing.url, sing.token, sing.timeout) == (d["service_url"], d["token"], d["timeout_seconds"])
-    assert defaults("selfie") == {"photo_dir": ""}
+    selfie = mod("selfie").Selfie({})
+    assert defaults("selfie") == {"photo_dir": "", "daily_limit": selfie.daily_limit, "recent_count": selfie.recent_count}
 
 
 def test_platform_hint_defaults_match_schema():
@@ -229,6 +230,126 @@ def test_reply_direction_hint_goes_into_this_turn_only():
     assert req.extra_user_content_parts == []
 
 
+def test_selfie_daily_limit_and_recent_survive_restart(tmp_path):
+    photo_dir = tmp_path / "photos"
+    photo_dir.mkdir()
+    for i in range(4):
+        (photo_dir / f"{i}.jpg").write_bytes(b"x")
+    (photo_dir / "photos.json").write_text("{}", encoding="utf-8")
+    selfie_mod = mod("selfie")
+
+    class Chat:
+        unified_msg_origin = "wechat:GroupMessage:1"
+        sent = []
+
+        async def send(self, chain):
+            self.sent.append(chain)
+
+    selfie = selfie_mod.Selfie({"photo_dir": str(photo_dir), "daily_limit": 2, "recent_count": 3})
+    selfie.state_path = str(tmp_path / "sent.json")
+    selfie.state = {}
+    chat = Chat()
+    for _ in range(2):
+        assert "已经发出去了" in asyncio.run(selfie.send_selfie(chat))
+    assert asyncio.run(selfie.send_selfie(chat)) == selfie_mod.ENOUGH_TODAY  # 第三张不发
+    assert len(chat.sent) == 2
+    entry = selfie.state[chat.unified_msg_origin]
+    assert entry["count"] == 2 and len(set(entry["recent"])) == 2  # 同一个聊天两张不重复
+
+    again = selfie_mod.Selfie({"photo_dir": str(photo_dir), "daily_limit": 2, "recent_count": 3})
+    again.state_path = selfie.state_path
+    again.state = again._load_state()  # 重启后记录还在：今天照样不发
+    assert asyncio.run(again.send_selfie(chat)) == selfie_mod.ENOUGH_TODAY
+    again.state[chat.unified_msg_origin]["date"] = "2000-01-01"  # 换了一天就重新算
+    assert "已经发出去了" in asyncio.run(again.send_selfie(chat))
+    assert len(set(again.state[chat.unified_msg_origin]["recent"])) == 3
+
+
+class WakeEvent:
+    """群里或私聊里叫她的一条消息"""
+
+    def __init__(self, comps, group_id="1", wake=True):
+        self.comps, self.group_id, self.is_at_or_wake_command = comps, group_id, wake
+
+    def get_group_id(self):
+        return self.group_id
+
+    def get_messages(self):
+        return self.comps
+
+
+def test_brevity_and_habit_defaults_match_schema(tmp_path):
+    assert mod("group_brevity").GroupBrevity({}).short_chars == defaults("group_brevity")["short_chars"]
+    hc = mod("habit_check").HabitCheck({}, str(tmp_path / "db"), str(tmp_path / "notes.json"))
+    d = defaults("habit_check")
+    assert (hc.run_at, hc.recent_per_chat) == (d["run_at"], d["recent_per_chat"])
+
+
+def test_group_brevity_hints_only_short_group_wakes():
+    from astrbot.core.message.components import At, Plain
+
+    gate = mod("group_brevity").GroupBrevity({"short_chars": 15})
+    hint = gate.hint_for(WakeEvent([At(qq="900", name="大肥鱼"), Plain(text=" 哈哈哈 [doge]")]))
+    assert hint.startswith("【回短点】对方这句就 3 个字")
+    assert gate.hint_for(WakeEvent([Plain(text="这句话说得比较长一点，超过十五个字了吧应该是")])) == ""
+    assert gate.hint_for(WakeEvent([Plain(text="在吗")], group_id="")) == ""  # 私聊不管
+    assert gate.hint_for(WakeEvent([Plain(text="在吗")], wake=False)) == ""  # 没叫她
+    assert gate.hint_for(WakeEvent([At(qq="900", name="大肥鱼")])) == ""  # 只 @、只发图不管
+    proactive = WakeEvent([Plain(text="在吗")])
+    proactive.private_companion_proactive_framework = True
+    assert gate.hint_for(proactive) == ""
+    req = SimpleNamespace(system_prompt="人格", extra_user_content_parts=[])
+    assert asyncio.run(gate.add_hint(WakeEvent([Plain(text="6")]), req)) is True
+    assert req.system_prompt == "人格" and req.extra_user_content_parts[0].model_dump_for_context().get("_no_save")
+
+
+def _turn(user, reply, tool=False):
+    msgs = [{"role": "user", "content": [{"type": "text", "text": f"[群友 甲(123)] {user}"},
+                                         {"type": "text", "text": "<system_reminder>很长的上下文</system_reminder>"}]}]
+    if tool:
+        msgs += [{"role": "assistant", "content": "", "tool_calls": [{"id": "1"}]}, {"role": "tool", "content": "结果"}]
+    return msgs + [{"role": "assistant", "content": reply}]
+
+
+def test_habit_check_counts_habits_and_writes_notes(tmp_path):
+    import sqlite3
+
+    hc_mod = mod("habit_check")
+    group = []
+    for i in range(20):
+        group += _turn("哈哈", f"行，这个我懂{i}\n不过说来话长（尾巴甩了一下）")
+    group += _turn("查下价格", "行情：参照价差多少多少，捡漏提醒" * 3, tool=True)  # 调了工具的不算
+    group.append({"role": "assistant", "content": "[CronJob] 每小时查一次"})
+    private = _turn("早", "早呀")
+    replies = hc_mod.replies_of(group, True, 40)
+    assert len(replies) == 21 and replies[0]["other_len"] == 2 and replies[-1]["tooled"]
+    stats = hc_mod.analyze(replies + hc_mod.replies_of(private, False, 40))
+    assert stats["group_short"] == 20 and stats["group_short_multi"] == 100 and stats["group_actions"] == 20
+    assert stats["openers"][0] == ("行", 20)
+    notes = hc_mod.make_notes(stats)
+    assert len(notes["group"] + notes["all"]) <= 3
+    assert any("拆成好几条" in x for x in notes["group"]) and any("括号动作" in x for x in notes["group"])
+    assert any("「行」" in x for x in notes["all"])
+
+    db = tmp_path / "data_v4.db"
+    con = sqlite3.connect(db)
+    con.execute("create table conversations (user_id text, content text)")
+    con.execute("insert into conversations values (?, ?)", ("wechat:GroupMessage:1", json.dumps(group, ensure_ascii=False)))
+    con.execute("insert into conversations values (?, ?)", ("wechat:FriendMessage:2", json.dumps(private, ensure_ascii=False)))
+    con.commit()
+    con.close()
+    hc = hc_mod.HabitCheck({}, str(db), str(tmp_path / "out" / "notes.json"))
+    hc.refresh()
+    assert json.load(open(tmp_path / "out" / "notes.json", encoding="utf-8"))["group"]
+    group_hint = hc.hint_for(WakeEvent([]))
+    private_hint = hc.hint_for(WakeEvent([], group_id=""))
+    assert group_hint.startswith("【最近说话的小毛病】") and "拆成好几条" in group_hint
+    assert "拆成好几条" not in private_hint and "「行」" in private_hint  # 群里的毛病只在群里提醒
+    assert hc.hint_for(WakeEvent([], wake=False)) == ""
+    hc.start()  # 测试里没有在跑的事件循环：不挂任务、不报错
+    assert hc.task is None
+
+
 def test_face_normalizes_punctuation_like_before():
     face_mod = mod("face")
     assert face_mod.FaceConvert._normalize_punctuation("好、但是「不行」") == "好，但是“不行”"
@@ -244,7 +365,8 @@ def build(config):
 
 def test_toolkit_defaults_build_our_modules_and_skip_astrna():
     kit, ctx = build({})
-    for name in ("private_only", "reply_direction", "platform_hint", "face", "pat", "welcome", "selfie", "sing", "voice"):
+    for name in ("private_only", "reply_direction", "group_brevity", "habit_check", "platform_hint", "face", "pat", "welcome",
+                 "selfie", "sing", "voice"):
         assert getattr(kit, name) is not None, name
     assert kit.preamble is None and kit.tool_history is None and kit.output_limit is None
     assert ctx.unregistered == []

@@ -16,6 +16,25 @@
       "enabled": {"description": "启用", "type": "bool", "default": true}
     }
   },
+  "group_brevity": {
+    "description": "群里说得短就回得短",
+    "type": "object",
+    "hint": "群里叫她的这句只有几个字时，请求模型前给这一轮加一句提醒：一条消息接住就行，别拆成好几条。统计里群里对方说 5 字以内，她回中位 22 字、近四成拆成多条。提醒不存进聊天历史。",
+    "items": {
+      "enabled": {"description": "启用", "type": "bool", "default": true},
+      "short_chars": {"description": "几个字以内算短", "type": "int", "default": 15, "hint": "只数这句自己的文字，不算 @、引用和表情。"}
+    }
+  },
+  "habit_check": {
+    "description": "说话习惯自检",
+    "type": "object",
+    "hint": "每天数一遍她最近的回复：群里对方说得短时她回多长、拆几条，开头最常用的词，反复出现的口头禅，群里的括号动作；挑最突出的最多三处写成提醒，放进之后的提示里，第二天按新数字重写。不额外调模型，提醒存在 data/plugin_data/astrbot_plugin_dafeiyu/habit_notes.json。",
+    "items": {
+      "enabled": {"description": "启用", "type": "bool", "default": true},
+      "run_at": {"description": "每天几点自检", "type": "string", "default": "04:30", "hint": "北京时间，写成「时:分」。插件启动时如果提醒不是今天的，也会先算一次。"},
+      "recent_per_chat": {"description": "每个对话看最近几条", "type": "int", "default": 40, "hint": "每个私聊、每个群各取她最近这么多条回复（不算调工具那几轮）。"}
+    }
+  },
   "platform_hint": {
     "description": "平台提示",
     "type": "object",
@@ -81,7 +100,9 @@
     "hint": "有人要看她的自拍、生活照、和同事的合照时，从相册里挑最贴的一张原样发出去。关掉后这个工具不再给她用。",
     "items": {
       "enabled": {"description": "启用", "type": "bool", "default": true},
-      "photo_dir": {"description": "照片文件夹", "type": "string", "default": "", "hint": "留空用 data/plugin_data/astrbot_plugin_selfie/photos/。往里加图、改 photos.json 都不用重启。"}
+      "photo_dir": {"description": "照片文件夹", "type": "string", "default": "", "hint": "留空用 data/plugin_data/astrbot_plugin_selfie/photos/。往里加图、改 photos.json 都不用重启。"},
+      "daily_limit": {"description": "每个聊天每天最多发几张", "type": "int", "default": 0, "hint": "0 表示不限。设了的话群按群算、私聊按人算，到了就让她用自己的口气说今天发够了。"},
+      "recent_count": {"description": "最近发过的几张尽量不重复", "type": "int", "default": 10, "hint": "按聊天分开记，存在 data/plugin_data/astrbot_plugin_selfie/sent.json，重启不丢。"}
     }
   },
   "sing": {
