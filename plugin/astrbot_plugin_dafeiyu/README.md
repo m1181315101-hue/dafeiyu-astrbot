@@ -13,7 +13,7 @@
 
 - 在 AstrBot 面板的插件页用仓库地址 `https://github.com/m1181315101-hue/astrbot_plugin_dafeiyu` 安装；或者把整个目录放进 `data/plugins/astrbot_plugin_dafeiyu/`，重启 AstrBot。
 - 要求 AstrBot 4.24.1 起（按 4.29.3 测过），更早的版本会拒绝加载。
-- ⚠️ **默认开着「只回私聊」**（`private_only`）：装好后群里不回。要在群里用，在这一节列出放行的群，或者把它关掉。
+- 想让机器人只在几个群里说话：打开「只回私聊」（`private_only`，默认关），在里面列出放行的群。
 
 它原来是「大肥鱼」（DeepSeek 吉祥物人设的 QQ / 微信聊天机器人）自己用的 8 个小插件，合成了一个，再加上从 [AstrNa](https://github.com/Sisyphbaous-DT-Project/astrbot_plugin_AstrNa) 原样搬来的 3 个可选功能（默认关）。人设相关的东西（拍一拍、新人欢迎的提示词，表情名单、同事名字）是按大肥鱼写的，别的角色用可以在配置里改提示词。
 
@@ -41,7 +41,7 @@ QQ（NapCat）上大部分功能一样能用，只是上面这几处是照着微
 
 | 配置里的一节 | 功能 | 原来的插件 | 默认 |
 | --- | --- | --- | --- |
-| private_only | 群消息不回，列出的群除外 | astrbot_plugin_private_only 1.1.0 | 开 |
+| private_only | 群消息不回，列出的群除外 | astrbot_plugin_private_only 1.1.0 | 关 |
 | group_brevity | 群里叫她的这句只有几个字时，提醒她一条消息接住，别拆成好几条 | 新写（v1.4.0） | 开 |
 | habit_check | 每天数一遍她最近的回复，挑出最突出的小毛病（群里回太长、老用同一个开头、口头禅、括号动作）写成提醒 | 新写（v1.4.0） | 开 |
 | image_repeat | 群里连着三条都是同一张图（多半是表情包，同一个人连发也算）时，她也跟一张；陪伴插件的复读机只认文字 | 新写（v1.5.0） | 开 |

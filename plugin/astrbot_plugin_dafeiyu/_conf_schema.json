@@ -2,9 +2,9 @@
   "private_only": {
     "description": "只回私聊",
     "type": "object",
-    "hint": "群消息在最前面就终止，不触发指令、插件和 LLM；下面列出的群照常回复。私聊不受影响。",
+    "hint": "默认关。打开后，群消息在最前面就终止，不触发指令、插件和 LLM；下面列出的群照常回复。私聊不受影响。",
     "items": {
-      "enabled": {"description": "启用", "type": "bool", "default": true},
+      "enabled": {"description": "启用", "type": "bool", "default": false},
       "allowed_groups": {"description": "照常回复的群", "type": "list", "default": [], "hint": "一项一个群号：QQ 群号，或微信群的 OneBot 号。"}
     }
   },

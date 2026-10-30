@@ -480,9 +480,10 @@ def build(config):
 
 def test_toolkit_defaults_build_our_modules_and_skip_astrna():
     kit, ctx = build({})
-    for name in ("private_only", "reply_direction", "group_brevity", "habit_check", "image_repeat", "platform_hint", "face",
+    for name in ("reply_direction", "group_brevity", "habit_check", "image_repeat", "platform_hint", "face",
                  "pat", "welcome", "selfie", "sing", "voice"):
         assert getattr(kit, name) is not None, name
+    assert kit.private_only is None, "只回私聊默认关"
     assert kit.preamble is None and kit.tool_history is None and kit.output_limit is None
     assert ctx.unregistered == []
     assert not any(m.startswith(f"{PKG}.astrna") for m in sys.modules), "开关关着时不该导入 AstrNa 的代码"
@@ -503,7 +504,7 @@ def test_one_broken_module_does_not_take_down_others(monkeypatch):
         raise OSError("字典文件没了")
 
     monkeypatch.setattr(main, "FaceConvert", boom)
-    kit, _ = build({})
+    kit, _ = build({"private_only": {"enabled": True}})
     assert kit.face is None
     assert kit.pat is not None and kit.private_only is not None
 
