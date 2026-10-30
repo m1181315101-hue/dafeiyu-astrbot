@@ -8,7 +8,7 @@
 
 | 插件 | 版本 | 来源 | 状态 | 用途 |
 |---|---|---|---|---|
-| `astrbot_plugin_dafeiyu`（大肥鱼工具箱） | v1.5.0 | 本仓库 `plugin/` | 启用 | 2026-10-30 由下面 8 个自写插件合成，每个功能在插件配置里单独开关：只回私聊、引用她又 @ 别人时说明在跟谁说（v1.2.0 起）、群里回短点和每日说话习惯自检（v1.4.0 起）、图片复读（v1.5.0 起）、平台提示、表情转换与收信翻译、拍一拍、新人欢迎、`send_selfie`、`sing_song`、`tts_speak`；另带从 AstrNa 搬来的过场白隐藏、工具历史压缩、输出字数限制，2026-10-30 下午起开着：过场白群聊私聊都隐藏；工具历史压缩开；字数限制 300 字、清洗模型 `deepseek/deepseek-flash`、主人的两个私聊不限 |
+| `astrbot_plugin_dafeiyu`（大肥鱼工具箱） | v1.5.3 | 本仓库 `plugin/` | 启用 | 2026-10-30 由下面 8 个自写插件合成，每个功能在插件配置里单独开关：只回私聊、引用她又 @ 别人时说明在跟谁说（v1.2.0 起）、群里回短点和每日说话习惯自检（v1.4.0 起）、图片复读（v1.5.0 起）、平台提示、表情转换与收信翻译、拍一拍、新人欢迎、`send_selfie`、`sing_song`、`tts_speak`；另带从 AstrNa 搬来的过场白隐藏、工具历史压缩、输出字数限制，2026-10-30 下午起开着：过场白群聊私聊都隐藏；工具历史压缩开；字数限制 300 字、清洗模型 `deepseek/deepseek-flash`、主人的两个私聊不限 |
 | `astrbot_plugin_face_convert` 等 8 个 | — | 本仓库 `plugin/`（已删） | **已合并** | face_convert、private_only、voice、sing、selfie、platform_hint、welcome、pat，合进上面的工具箱，旧目录不再用 |
 | `astrbot_plugin_group_followup` | v1.0.0 | 本仓库 `plugin/` | **停用** | 群聊续聊，现在交给陪伴插件 |
 | `astrbot_plugin_private_companion`（陪伴面板） | 6.5.6 | [menglimi/astrbot_plugin_private_companion](https://github.com/menglimi/astrbot_plugin_private_companion)（仓库未声明许可证） | 启用 | 生活日程、关系、主动消息、群聊续聊与读空气、TTS 增强 |

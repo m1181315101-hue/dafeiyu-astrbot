@@ -2,9 +2,10 @@
 
 陪伴插件的复读机只认文字，纯图片消息一律当「[图片]」占位跳过；这里补上图片这一半，不调模型。
 - 「同一张」：微信连接器给表情包的文件名就是原图 md5（QQ 的图片文件名多半也是），优先认它；
-  没有就认去掉参数的下载地址，再没有就认 base64 内容的摘要。
-- 要连着 min_people 条都是这张图、来自 min_people 个不同的人；中间插进别的话就重新数。
-- 同一串只判一次，按 probability 掷骰；每个群有冷却和每天上限。
+  没有就认完整的下载地址（微信表情包的地址去掉参数后都一样，不能去参数），再没有就认 base64 内容的摘要。
+- 要连着 min_count 条都是这张图，同一个人连发也算（distinct_people 打开时才要求这么多个不同的人）；
+  中间插进别的话就重新数。
+- 同一串只判一次，按 probability 掷骰；每个群有冷却和每天上限。凑够人数时不管跟没跟都记一行判定，方便查。
 - 发的是原图：下载回来按 base64 发，微信连接器照常处理（GIF 默认取中间一帧当图片发）。
 """
 import base64
@@ -27,15 +28,17 @@ TZ = datetime.timezone(datetime.timedelta(hours=8))
 class ImageRepeat:
     def __init__(self, cfg: dict):
         # 工具箱「image_repeat」一节
-        self.min_people = max(2, int(cfg.get("min_people", 3)))
-        self.probability = min(100, max(0, int(cfg.get("probability", 60))))
+        self.min_count = max(2, int(cfg.get("min_count", 3)))
+        self.distinct_people = bool(cfg.get("distinct_people", False))
+        self.probability = min(100, max(0, int(cfg.get("probability", 100))))
         self.cooldown = max(0, int(cfg.get("cooldown_minutes", 10))) * 60
         self.daily_limit = max(0, int(cfg.get("daily_limit", 5)))
         self.recent: dict[str, deque] = {}  # 群 → 最近连着的 (图片, 发的人)
         self.decided: dict[str, str] = {}  # 群 → 这一串已经判过的图片
         self.last_sent: dict[str, float] = {}
         self.today: dict[str, tuple[str, int]] = {}  # 群 → (日期, 今天跟了几次)
-        logger.info(f"[image_repeat] 群里 {self.min_people} 个人连着发同一张图时，{self.probability}% 跟一张")
+        who = "、来自不同的人" if self.distinct_people else "（同一个人连发也算）"
+        logger.info(f"[image_repeat] 群里连着 {self.min_count} 条同一张图{who}时，{self.probability}% 跟一张")
 
     @staticmethod
     def image_of(event: AstrMessageEvent) -> tuple[str, Image | None]:
@@ -52,17 +55,18 @@ class ImageRepeat:
             return found.group(0).lower(), image
         url = str(image.url or "")
         if url.startswith(("http://", "https://")):
-            return url.split("?")[0], image
+            return url, image
         if file.startswith("base64://"):
             return "b64:" + hashlib.sha1(file.encode()).hexdigest(), image
         return "", None
 
-    def _allowed(self, group: str, now: float) -> bool:
+    def _blocked(self, group: str, now: float) -> str:
+        """冷却或到了每天上限就返回原因，能跟返回空串"""
         if self.cooldown and now - self.last_sent.get(group, 0) < self.cooldown:
-            return False
+            return "冷却中"
         day = datetime.datetime.now(TZ).date().isoformat()
         seen_day, count = self.today.get(group, (day, 0))
-        return not (self.daily_limit and seen_day == day and count >= self.daily_limit)
+        return "今天已经跟满了" if self.daily_limit and seen_day == day and count >= self.daily_limit else ""
 
     def _count(self, group: str, now: float) -> int:
         day = datetime.datetime.now(TZ).date().isoformat()
@@ -85,6 +89,7 @@ class ImageRepeat:
         async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.get(url) as resp:
                 if resp.status != 200:
+                    logger.warning(f"[image_repeat] 原图下载失败：状态码 {resp.status}")
                     return b""
                 data = await resp.content.read(MAX_BYTES + 1)
         return data if len(data) <= MAX_BYTES else b""
@@ -96,20 +101,28 @@ class ImageRepeat:
         if not group or not sender or sender == str(event.get_self_id()):
             return False
         key, image = self.image_of(event)
-        streak = self.recent.setdefault(group, deque(maxlen=self.min_people))
+        streak = self.recent.setdefault(group, deque(maxlen=self.min_count))
         if not key or (streak and streak[-1][0] != key):
             streak.clear()
             self.decided.pop(group, None)
         if not key:
             return False
         streak.append((key, sender))
-        if len(streak) < self.min_people or len({s for _, s in streak}) < self.min_people:
+        if len(streak) < self.min_count:
+            return False
+        if self.distinct_people and len({s for _, s in streak}) < self.min_count:
             return False
         if self.decided.get(group) == key:
             return False
         self.decided[group] = key  # 同一串只判一次
         now = time.time()
-        if not self._allowed(group, now) or random.randint(1, 100) > self.probability:
+        head = f"[image_repeat] {event.unified_msg_origin} 连着 {self.min_count} 条同一张图"
+        blocked = self._blocked(group, now)
+        if blocked:
+            logger.info(f"{head}，{blocked}，不跟")
+            return False
+        if random.randint(1, 100) > self.probability:
+            logger.info(f"{head}，这次没掷中（{self.probability}%），不跟")
             return False
         try:
             data = await self.fetch(image)
@@ -117,8 +130,9 @@ class ImageRepeat:
             logger.warning(f"[image_repeat] {event.unified_msg_origin} 图片取不回来，这次不跟：{type(e).__name__}")
             return False
         if not data:
+            logger.info(f"{head}，原图取不回来，不跟")
             return False
         await event.send(MessageChain([Image.fromBase64(base64.b64encode(data).decode())]))
         n = self._count(group, now)
-        logger.info(f"[image_repeat] {event.unified_msg_origin} 有 {self.min_people} 个人连着发同一张图，她跟了一张（今天第 {n} 次）")
+        logger.info(f"{head}，她跟了一张（今天第 {n} 次）")
         return True

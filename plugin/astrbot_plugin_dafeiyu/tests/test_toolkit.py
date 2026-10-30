@@ -378,39 +378,47 @@ class ImageEvent:
 def test_image_repeat_defaults_match_schema():
     ir = mod("image_repeat").ImageRepeat({})
     d = defaults("image_repeat")
-    assert (ir.min_people, ir.probability, ir.cooldown // 60, ir.daily_limit) == (
-        d["min_people"], d["probability"], d["cooldown_minutes"], d["daily_limit"])
+    assert (ir.min_count, ir.distinct_people, ir.probability, ir.cooldown // 60, ir.daily_limit) == (
+        d["min_count"], d["distinct_people"], d["probability"], d["cooldown_minutes"], d["daily_limit"])
 
 
-def test_image_repeat_follows_three_people_same_sticker():
+def test_image_repeat_follows_three_in_a_row():
     from astrbot.core.message.components import Image, Plain
 
     ir_mod = mod("image_repeat")
-    ir = ir_mod.ImageRepeat({"min_people": 3, "probability": 100, "cooldown_minutes": 0, "daily_limit": 2})
 
     async def fake_fetch(image):
         return b"GIF89a-fake"
 
-    ir.fetch = fake_fetch
     md5 = "0123456789abcdef0123456789ABCDEF"
     sticker = lambda: Image(file=f"{md5}.gif", url="http://cdn.example/x?token=1")  # noqa: E731
+    other = lambda: Image(file="b" * 32 + ".png")  # noqa: E731
+
+    ir = ir_mod.ImageRepeat({"min_count": 3, "probability": 100, "cooldown_minutes": 0, "daily_limit": 2})
+    ir.fetch = fake_fetch
     ImageEvent.sent = []
 
-    def run(sender, comps, group="1"):
-        return asyncio.run(ir.observe(ImageEvent(sender, comps, group)))
+    def run(sender, comps, group="1", gate=ir):
+        return asyncio.run(gate.observe(ImageEvent(sender, comps, group)))
 
     assert ir.image_of(ImageEvent("a", [sticker()]))[0] == md5.lower()  # 文件名里的 md5 优先
     assert ir.image_of(ImageEvent("a", [sticker(), Plain(text="哈哈")]))[0] == ""  # 带了字的不算
-    assert ir.image_of(ImageEvent("a", [Image(file="x.jpg", url="https://q.example/a.jpg?rk=9")]))[0] == "https://q.example/a.jpg"
-    assert [run("a", [sticker()]), run("a", [sticker()]), run("b", [sticker()])] == [False] * 3  # 同一个人发两次不算两个人
-    assert run("c", [sticker()]) is True and len(ImageEvent.sent) == 1  # 第三个不同的人：跟
-    assert run("d", [sticker()]) is False  # 同一串只跟一次
-    run("e", [Plain(text="哈哈哈")])  # 插进别的话，重新数
-    other = lambda: Image(file="b" * 32 + ".png")  # noqa: E731
+    # 没有 md5 就认完整地址：微信表情包的地址去掉参数后都一样，不能去参数
+    assert ir.image_of(ImageEvent("a", [Image(file="x.jpg", url="https://q.example/a?id=9")]))[0] == "https://q.example/a?id=9"
+    assert ir.image_of(ImageEvent("a", [Image(file="x.jpg", url="https://q.example/a?id=8")]))[0] != "https://q.example/a?id=9"
+    assert [run("a", [sticker()]), run("a", [sticker()]), run("a", [sticker()])] == [False, False, True]  # 同一个人连发三条也算
+    assert len(ImageEvent.sent) == 1
+    assert run("b", [sticker()]) is False  # 同一串只跟一次
+    run("c", [Plain(text="哈哈哈")])  # 插进别的话，重新数
     assert [run(x, [other()]) for x in "abc"] == [False, False, True]
     assert [run(x, [sticker()]) for x in "xyz"] == [False, False, False]  # 今天已经跟了 2 次，到上限
     assert [run(x, [sticker()], group="2") for x in "abc"][-1] is True  # 别的群照常
     assert run("900", [sticker()], group="3") is False  # 她自己发的不算
+
+    strict = ir_mod.ImageRepeat({"min_count": 3, "distinct_people": True, "probability": 100, "cooldown_minutes": 0})
+    strict.fetch = fake_fetch
+    assert [run(x, [sticker()], group="4", gate=strict) for x in "aab"] == [False, False, False]  # 要不同的人：a 连发两次不够
+    assert run("c", [sticker()], group="4", gate=strict) is True
 
 
 def test_face_normalizes_punctuation_like_before():

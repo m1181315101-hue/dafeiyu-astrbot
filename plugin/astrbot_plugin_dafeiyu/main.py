@@ -40,7 +40,7 @@ OFF_TOOL_TEXT = "这个功能现在关着。用一句话跟对方说现在做不
     "astrbot_plugin_dafeiyu",
     "dafeiyu-local",
     "大肥鱼工具箱：只回私聊、引用她又 @ 别人时说明在跟谁说、群里回短点、说话习惯自检、图片复读、平台提示、表情转换、拍一拍、新人欢迎、发照片、唱歌、发语音，外加 AstrNa 的三个可选功能",
-    "1.5.0",
+    "1.5.3",
 )
 class DafeiyuToolkit(Star):
     def __init__(self, context: Context, config: dict | None = None):
