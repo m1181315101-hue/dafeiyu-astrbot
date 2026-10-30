@@ -196,5 +196,19 @@ def test_one_broken_module_does_not_take_down_others(monkeypatch):
     assert kit.pat is not None and kit.private_only is not None
 
 
+
+def test_astrna_modules_install_on_real_astrbot_and_uninstall():
+    """三个 AstrNa 功能打开时能装到真 AstrBot 上、插件停用时能卸干净（放在最后：会导入 AstrNa 的代码）"""
+    kit, _ = build({
+        "hide_tool_preamble": {"enabled": True, "all_groups": True, "all_private": True, "umos": []},
+        "tool_history": {"enabled": True},
+        "output_limit": {"enabled": True, "max_chars": 300, "provider_id": "", "persona_id": "", "whitelist_umos": []},
+    })
+    modules = (kit.preamble, kit.tool_history, kit.output_limit)
+    assert all(m is not None for m in modules)
+    assert all(getattr(m, "_installed", True) for m in modules)
+    asyncio.run(kit.terminate())
+    assert not any(getattr(m, "_installed", False) for m in modules)
+
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__, "-q"]))
