@@ -10,7 +10,7 @@
   "model_assignment_config.FAST_RESPONSE_PROVIDER_ID": "deepseek/deepseek-flash",
   "model_assignment_config.COMPLEX_REASONING_PROVIDER_ID": "deepseek/deepseek-flash",
   "model_assignment_config.CREATIVE_MODEL_PROVIDER_ID": "deepseek/deepseek-flash",
-  "model_assignment_config.PLUGIN_VISION_PROVIDER_ID": "deepseek/deepseek-flash",
+  "model_assignment_config.PLUGIN_VISION_PROVIDER_ID": "aliyun/qwen3.8-flash",
   "proactive_reach_config.proactive_intensity_preset": "balanced",
   "proactive_reach_config.max_daily_messages": 4,
   "message_debounce_config.private_image_self_recognition_hint": "蓝色系小鲸鱼娘：圆脸大眼睛、深蓝渐变浅蓝长卷发、头顶呆毛、深蓝女仆小裙配白围裙、蓝色椭圆胸针、鲸鱼尾巴，约两个半头身",
@@ -60,5 +60,6 @@
   "message_debounce_config.image_message_debounce_seconds": 4.0,
   "group_wakeup_config.group_wakeup_short_text_wait_seconds": 6.0,
   "group_high_intensity_config.group_high_intensity_merge_seconds": 3,
-  "group_high_intensity_config.enable_group_high_intensity_mode": false
+  "group_high_intensity_config.enable_group_high_intensity_mode": false,
+  "model_fallback_overrides": "{\"PLUGIN_VISION_PROVIDER_ID\": \"deepseek/deepseek-flash\"}"
 }

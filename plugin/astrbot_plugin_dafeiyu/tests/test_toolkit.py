@@ -154,6 +154,21 @@ def test_face_module_loads_dictionaries_and_identities():
     assert face.dashscope_key == ""
 
 
+def test_face_borrows_dashscope_key_in_configured_order():
+    providers = [
+        {"id": "bailian_rerank", "rerank_api_key": "rerank-key"},
+        {"id": "dashscope_embedding", "embedding_api_key": "embedding-key"},
+        {"id": "other", "api_key": "other-key"},
+    ]
+    face_mod = mod("face")
+    face = face_mod.FaceConvert(FakeContext({"provider": providers, "admins_id": []}), {})
+    assert (face.dashscope_key, face.dashscope_key_from) == ("embedding-key", "dashscope_embedding")
+    providers.append({"id": "dashscope_tts", "api_key": "tts-key"})  # 原来的提供商还在就照旧用它
+    face = face_mod.FaceConvert(FakeContext({"provider": providers, "admins_id": []}), {})
+    assert face.dashscope_key_from == "dashscope_tts"
+    face = face_mod.FaceConvert(FakeContext({"provider": providers, "admins_id": []}), {"dashscope_key_providers": ["nope"]})
+    assert face.dashscope_key == ""
+
 def test_face_normalizes_punctuation_like_before():
     face_mod = mod("face")
     assert face_mod.FaceConvert._normalize_punctuation("好、但是「不行」") == "好，但是“不行”"

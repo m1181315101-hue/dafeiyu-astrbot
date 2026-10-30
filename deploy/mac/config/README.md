@@ -8,7 +8,7 @@
 
 | 插件 | 版本 | 来源 | 状态 | 用途 |
 |---|---|---|---|---|
-| `astrbot_plugin_dafeiyu`（大肥鱼工具箱） | v1.0.0 | 本仓库 `plugin/` | 启用 | 2026-10-30 由下面 8 个自写插件合成，每个功能在插件配置里单独开关：只回私聊、平台提示、表情转换与收信翻译、拍一拍、新人欢迎、`send_selfie`、`sing_song`、`tts_speak`；另带从 AstrNa 搬来的过场白隐藏、工具历史压缩、输出字数限制，2026-10-30 下午起开着：过场白群聊私聊都隐藏；工具历史压缩开；字数限制 300 字、清洗模型 `deepseek/deepseek-flash`、主人的两个私聊不限 |
+| `astrbot_plugin_dafeiyu`（大肥鱼工具箱） | v1.1.0 | 本仓库 `plugin/` | 启用 | 2026-10-30 由下面 8 个自写插件合成，每个功能在插件配置里单独开关：只回私聊、平台提示、表情转换与收信翻译、拍一拍、新人欢迎、`send_selfie`、`sing_song`、`tts_speak`；另带从 AstrNa 搬来的过场白隐藏、工具历史压缩、输出字数限制，2026-10-30 下午起开着：过场白群聊私聊都隐藏；工具历史压缩开；字数限制 300 字、清洗模型 `deepseek/deepseek-flash`、主人的两个私聊不限 |
 | `astrbot_plugin_face_convert` 等 8 个 | — | 本仓库 `plugin/`（已删） | **已合并** | face_convert、private_only、voice、sing、selfie、platform_hint、welcome、pat，合进上面的工具箱，旧目录不再用 |
 | `astrbot_plugin_group_followup` | v1.0.0 | 本仓库 `plugin/` | **停用** | 群聊续聊，现在交给陪伴插件 |
 | `astrbot_plugin_private_companion`（陪伴面板） | 6.5.6 | [menglimi/astrbot_plugin_private_companion](https://github.com/menglimi/astrbot_plugin_private_companion)（仓库未声明许可证） | 启用 | 生活日程、关系、主动消息、群聊续聊与读空气、TTS 增强 |
@@ -50,6 +50,8 @@
   - `photo_action_config` 里把她的自拍设成人格参考图（`photo_reference_library` 一行是「图片路径 || 外观说明」），以后接上生图后端时用来保持长相。图片本身不在仓库里，换成你自己的。
 - 其他第三方插件（表情包、`memory_companion`）的配置都是默认值（表情包另开了「表情使用频率」提示，见上表），只有下面这一处例外。
 - `memory_companion` 的向量检索（2026-10-30）：原来只按关键词找记忆，平均每次回复有 20 多条候选因为「关键词命中太弱」被挡掉（比如聊「吃火锅」找不到写成「去海底捞」的那条）。在 AstrBot「服务提供商」里加了阿里云百炼的 Embedding（`dashscope_embedding`，`qwen3.7-text-embedding-flash`，1024 维）和 Rerank（`bailian_rerank`，`qwen3.7-text-rerank`），插件配置里 `retrieval.embedding_enabled` 打开，`retrieval.embedding_provider_id`、`retrieval.rerank_provider_id` 填这两个 ID，其余检索参数默认（相似度门槛 0.34：这个模型下不相关的两句也有 0.39 左右，靠重排把不相关的筛掉）。存量记忆由插件后台每 5 分钟补 50 条向量。密钥只在本机 AstrBot 里。
+- 看图（2026-10-30）：陪伴插件看图（私聊单图、群聊图片、引用和合并消息里的图）原来用聊天的 `deepseek/deepseek-flash`。它要先思考 500–900 字，看引用图时插件只给 260 token 上限，常常思考完就没额度写答案、返回空；群图有时思考超过 12 秒超时。在「服务提供商」里加了阿里云百炼的 `aliyun/qwen3.8-flash`（OpenAI 兼容，能力勾图片），给它 `custom_extra_body` 加 `enable_thinking: false`（关思考后每张 1.6–2.5 秒、约 50 token，测试表情包四张全看懂），陪伴插件 `model_assignment_config.PLUGIN_VISION_PROVIDER_ID` 改成它，`model_fallback_overrides` 里把看图兜底设成 `deepseek/deepseek-flash`。
+- 语音和视频（2026-10-30）：大肥鱼工具箱的 `face` 一节，语音转写（`qwen3-asr-flash`）和视频理解（`qwen3-vl-plus`）要百炼 key，原来只从 `dashscope_tts` 提供商拿，这个提供商删了以后收到的语音、视频一直识别不了。工具箱 v1.1.0 起按 `face.dashscope_key_providers` 的顺序借 key，现在借的是 `dashscope_embedding`。微信连接器本来就不转语音和视频，这两样只对 QQ 有用。
 - **`memory_companion` 有一处本地改动（2026-10-29，插件升级会被覆盖，升级后要重新改）**：`core/summarizer.py` 的 `summary_quality` 里，总结只要出现「某用户、某人、有人、群成员」这类词就判成低质量、进不了长期记忆；但它按字面找「有人」，「没有人」「所有人」也会被拦。微信群两天里 134 次被拒全是这条，约三分之一（46 条）是这么误判的。改法：查这些词之前，先把「没有人」「所有人」「只有人」「有人气」从总结里去掉再查，其余规则不动。这个问题还没提给作者。
 - **AstrBot 在跑的时候，别在 macOS 本机直接打开 `data/` 下的 SQLite 库**（`data_v4.db`、插件的 `.db`），只读也不行：这些库是 WAL 模式，锁和共享内存跨不过 Docker Desktop 的虚拟机，本机一关库就可能把容器正在写的 WAL 截掉。2026-10-30 这样坏过一次 `data_v4.db` 的定时任务表。要看就 `docker cp` 一份出来看拷贝，要改就先停 AstrBot。
 - 大肥鱼工具箱：配置在面板 → 插件 → 大肥鱼工具箱 → 配置里改（存在 `data/config/astrbot_plugin_dafeiyu_config.json`），保存后插件自动重载。要填的有：只回私聊的群、欢迎的群、拍一拍的平台、主人和女主人的号、翻唱服务和变声服务的地址与口令（和 `cover/config.json` 的 `token` 一样）。照片放进 `data/plugin_data/astrbot_plugin_selfie/photos/`（沿用原来的文件夹）。

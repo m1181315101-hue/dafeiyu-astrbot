@@ -27,6 +27,7 @@
       "text_emoji_platforms": {"description": "用文字表情的平台", "type": "list", "default": ["wechat"], "hint": "这些平台（AstrBot 里的平台 ID）不转 QQ 表情段，改成该平台认的「[名字]」文字。"},
       "owner_ids": {"description": "主人的号", "type": "list", "default": [], "hint": "身份标记里标「主人」。写「号」在所有平台都算，写「平台ID:号」只在那个平台算。AstrBot 的管理员一直算主人。"},
       "partner_ids": {"description": "女主人的号", "type": "list", "default": [], "hint": "身份标记里标「女主人」，写法同上。"},
+      "dashscope_key_providers": {"description": "百炼 key 从哪借", "type": "list", "default": ["dashscope_tts", "dashscope_embedding", "bailian_rerank"], "hint": "语音转写（qwen3-asr-flash）和视频理解（qwen3-vl-plus）要用百炼的 key：按顺序从这些 AstrBot 提供商里找第一个填了 key 的。都没有就不开这两样。"},
       "hedge_eraser": {"description": "擦掉嘴硬小尾巴", "type": "bool", "default": true, "hint": "擦掉「看不清 / 模模糊糊 / 隐约听见」这类回声型小尾巴；她请对方重发时不擦。"},
       "face_cooldown_minutes": {"description": "表情冷却（分钟）", "type": "int", "default": 10, "hint": "同一个会话里最近用过的表情，这段时间内不再连着用。"},
       "max_media_mb": {"description": "语音视频最大（MB）", "type": "int", "default": 80},

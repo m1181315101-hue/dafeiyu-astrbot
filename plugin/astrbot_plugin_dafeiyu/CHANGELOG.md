@@ -1,5 +1,9 @@
 # 更新记录
 
+## v1.1.0
+
+- 表情转换（face）的语音转写和视频理解：百炼 key 改成按 `dashscope_key_providers` 的顺序从几个提供商里借（默认 dashscope_tts → dashscope_embedding → bailian_rerank）。原来只认 dashscope_tts，这个提供商删了以后，收到的语音条和视频一直是「没听清 / 未能识别」。
+
 ## v1.0.0
 
 - 把只回私聊、平台提示、表情转换、拍一拍、新人欢迎、发照片、唱歌、发语音 8 个插件合成一个，行为不变；配置从各插件目录里的 config.json 搬进 AstrBot 面板。

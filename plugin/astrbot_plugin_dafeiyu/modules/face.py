@@ -8,6 +8,8 @@
 原 astrbot_plugin_face_convert 1.3.1，搬进大肥鱼工具箱时只改了三处：配置从工具箱的「face」一节读、
 字典文件挪到工具箱的 data/、DashScope key 和管理员名单改从 AstrBot 的主配置对象读（以前按相对路径读 cmd_config.json）。
 收信翻译、身份标记、三道橡皮擦、表情转换这几个钩子由 main.py 接上；「语音开/关/状态」三个指令搬去了 voice.py。
+后来（1.1.0）又加了一处：语音转写和视频理解要的百炼 key，按 dashscope_key_providers 的顺序从这几个提供商里借，
+原来只认 dashscope_tts，那个提供商删了以后这两样一直是关的。
 """
 
 import asyncio
@@ -55,7 +57,10 @@ DEFAULT_CONFIG = {
     # （微信连接器给的号是算出来的，可能和某个 QQ 号撞上，建议带平台 ID）。AstrBot 的 admins_id 一直算主人
     "owner_ids": [],
     "partner_ids": [],
+    # 语音转写、视频理解用的百炼 key 从这些提供商里借，按顺序找第一个填了 key 的
+    "dashscope_key_providers": ["dashscope_tts", "dashscope_embedding", "bailian_rerank"],
 }
+KEY_FIELDS = ("api_key", "embedding_api_key", "rerank_api_key", "key")  # 不同类型的提供商把 key 放在不同字段
 
 
 def timestamp(seconds: float) -> str:
@@ -199,21 +204,25 @@ class FaceConvert:
         # 表情冷却：按会话记录她最近用过的脸 [(脸id, 时间戳)]（治"又发好多狗头"；
         # 早期版本是全局共享列表，会跨群串扰，已改为按会话隔离 + 时间过期）
         self._face_history: dict[str, list[tuple[int, float]]] = {}
-        # DashScope key（用于语音转写）+ 管理员名单（群聊里标成「主人」）
+        # DashScope key（用于语音转写、视频理解）+ 管理员名单（群聊里标成「主人」）
         self.dashscope_key = ""
+        self.dashscope_key_from = ""
         self.admins: list[str] = []
         try:
             cfg = self.context.get_config()
-            for prov in cfg.get("provider", []):
-                if prov.get("id") == "dashscope_tts" and prov.get("api_key"):
-                    self.dashscope_key = prov["api_key"]
+            providers = {p.get("id"): p for p in cfg.get("provider", []) if isinstance(p, dict)}
+            for pid in self.cfg["dashscope_key_providers"] or []:
+                prov = providers.get(str(pid).strip()) or {}
+                key = next((prov[f] for f in KEY_FIELDS if isinstance(prov.get(f), str) and prov[f].strip()), "")
+                if key:
+                    self.dashscope_key, self.dashscope_key_from = key.strip(), str(pid).strip()
                     break
             self.admins = [str(a).strip() for a in (cfg.get("admins_id") or [])]
         except Exception as e:
             logger.warning(f"[face_convert] 读取 DashScope key 失败: {e}")
         logger.info(
             f"[face_convert] 表情字典载入完成，共 {len(self.face_map)} 条；"
-            f"语音转写{'已就绪' if self.dashscope_key else '未配置'}"
+            f"语音转写{f'已就绪（key 借自 {self.dashscope_key_from}）' if self.dashscope_key else '未配置'}"
         )
 
     def _identity(self, platform: str, sid: str) -> str:
