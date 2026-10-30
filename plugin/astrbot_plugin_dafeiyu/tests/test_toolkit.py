@@ -350,6 +350,69 @@ def test_habit_check_counts_habits_and_writes_notes(tmp_path):
     assert hc.task is None
 
 
+class ImageEvent:
+    """群里一条消息：发的人、消息段；send 记下她发出去的"""
+
+    sent = []
+
+    def __init__(self, sender, comps, group_id="1", self_id="900"):
+        self.sender, self.comps, self.group_id, self.self_id = sender, comps, group_id, self_id
+        self.unified_msg_origin = f"wechat:GroupMessage:{group_id}"
+
+    def get_group_id(self):
+        return self.group_id
+
+    def get_sender_id(self):
+        return self.sender
+
+    def get_self_id(self):
+        return self.self_id
+
+    def get_messages(self):
+        return self.comps
+
+    async def send(self, chain):
+        ImageEvent.sent.append(chain)
+
+
+def test_image_repeat_defaults_match_schema():
+    ir = mod("image_repeat").ImageRepeat({})
+    d = defaults("image_repeat")
+    assert (ir.min_people, ir.probability, ir.cooldown // 60, ir.daily_limit) == (
+        d["min_people"], d["probability"], d["cooldown_minutes"], d["daily_limit"])
+
+
+def test_image_repeat_follows_three_people_same_sticker():
+    from astrbot.core.message.components import Image, Plain
+
+    ir_mod = mod("image_repeat")
+    ir = ir_mod.ImageRepeat({"min_people": 3, "probability": 100, "cooldown_minutes": 0, "daily_limit": 2})
+
+    async def fake_fetch(image):
+        return b"GIF89a-fake"
+
+    ir.fetch = fake_fetch
+    md5 = "0123456789abcdef0123456789ABCDEF"
+    sticker = lambda: Image(file=f"{md5}.gif", url="http://cdn.example/x?token=1")  # noqa: E731
+    ImageEvent.sent = []
+
+    def run(sender, comps, group="1"):
+        return asyncio.run(ir.observe(ImageEvent(sender, comps, group)))
+
+    assert ir.image_of(ImageEvent("a", [sticker()]))[0] == md5.lower()  # 文件名里的 md5 优先
+    assert ir.image_of(ImageEvent("a", [sticker(), Plain(text="哈哈")]))[0] == ""  # 带了字的不算
+    assert ir.image_of(ImageEvent("a", [Image(file="x.jpg", url="https://q.example/a.jpg?rk=9")]))[0] == "https://q.example/a.jpg"
+    assert [run("a", [sticker()]), run("a", [sticker()]), run("b", [sticker()])] == [False] * 3  # 同一个人发两次不算两个人
+    assert run("c", [sticker()]) is True and len(ImageEvent.sent) == 1  # 第三个不同的人：跟
+    assert run("d", [sticker()]) is False  # 同一串只跟一次
+    run("e", [Plain(text="哈哈哈")])  # 插进别的话，重新数
+    other = lambda: Image(file="b" * 32 + ".png")  # noqa: E731
+    assert [run(x, [other()]) for x in "abc"] == [False, False, True]
+    assert [run(x, [sticker()]) for x in "xyz"] == [False, False, False]  # 今天已经跟了 2 次，到上限
+    assert [run(x, [sticker()], group="2") for x in "abc"][-1] is True  # 别的群照常
+    assert run("900", [sticker()], group="3") is False  # 她自己发的不算
+
+
 def test_face_normalizes_punctuation_like_before():
     face_mod = mod("face")
     assert face_mod.FaceConvert._normalize_punctuation("好、但是「不行」") == "好，但是“不行”"
@@ -365,8 +428,8 @@ def build(config):
 
 def test_toolkit_defaults_build_our_modules_and_skip_astrna():
     kit, ctx = build({})
-    for name in ("private_only", "reply_direction", "group_brevity", "habit_check", "platform_hint", "face", "pat", "welcome",
-                 "selfie", "sing", "voice"):
+    for name in ("private_only", "reply_direction", "group_brevity", "habit_check", "image_repeat", "platform_hint", "face",
+                 "pat", "welcome", "selfie", "sing", "voice"):
         assert getattr(kit, name) is not None, name
     assert kit.preamble is None and kit.tool_history is None and kit.output_limit is None
     assert ctx.unregistered == []

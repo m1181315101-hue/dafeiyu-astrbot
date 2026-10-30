@@ -35,6 +35,18 @@
       "recent_per_chat": {"description": "每个对话看最近几条", "type": "int", "default": 40, "hint": "每个私聊、每个群各取她最近这么多条回复（不算调工具那几轮）。"}
     }
   },
+  "image_repeat": {
+    "description": "图片复读",
+    "type": "object",
+    "hint": "群里连着几个人发同一张图（多半是表情包）时，她也跟着发同一张，像群友那样凑个热闹；不调模型。陪伴插件的复读机只认文字，这里补上图片。同一串只判一次，有冷却和每天上限。",
+    "items": {
+      "enabled": {"description": "启用", "type": "bool", "default": true},
+      "min_people": {"description": "连着几个人发才跟", "type": "int", "default": 3, "hint": "要连着这么多条都是同一张图、来自这么多个不同的人；中间插进别的话就重新数。最少 2。"},
+      "probability": {"description": "跟的概率（%）", "type": "int", "default": 60},
+      "cooldown_minutes": {"description": "同一个群两次之间至少隔几分钟", "type": "int", "default": 10},
+      "daily_limit": {"description": "每个群每天最多跟几次", "type": "int", "default": 5, "hint": "0 表示不限。"}
+    }
+  },
   "platform_hint": {
     "description": "平台提示",
     "type": "object",

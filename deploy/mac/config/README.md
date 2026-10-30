@@ -8,11 +8,11 @@
 
 | 插件 | 版本 | 来源 | 状态 | 用途 |
 |---|---|---|---|---|
-| `astrbot_plugin_dafeiyu`（大肥鱼工具箱） | v1.4.0 | 本仓库 `plugin/` | 启用 | 2026-10-30 由下面 8 个自写插件合成，每个功能在插件配置里单独开关：只回私聊、引用她又 @ 别人时说明在跟谁说（v1.2.0 起）、群里回短点和每日说话习惯自检（v1.4.0 起）、平台提示、表情转换与收信翻译、拍一拍、新人欢迎、`send_selfie`、`sing_song`、`tts_speak`；另带从 AstrNa 搬来的过场白隐藏、工具历史压缩、输出字数限制，2026-10-30 下午起开着：过场白群聊私聊都隐藏；工具历史压缩开；字数限制 300 字、清洗模型 `deepseek/deepseek-flash`、主人的两个私聊不限 |
+| `astrbot_plugin_dafeiyu`（大肥鱼工具箱） | v1.5.0 | 本仓库 `plugin/` | 启用 | 2026-10-30 由下面 8 个自写插件合成，每个功能在插件配置里单独开关：只回私聊、引用她又 @ 别人时说明在跟谁说（v1.2.0 起）、群里回短点和每日说话习惯自检（v1.4.0 起）、图片复读（v1.5.0 起）、平台提示、表情转换与收信翻译、拍一拍、新人欢迎、`send_selfie`、`sing_song`、`tts_speak`；另带从 AstrNa 搬来的过场白隐藏、工具历史压缩、输出字数限制，2026-10-30 下午起开着：过场白群聊私聊都隐藏；工具历史压缩开；字数限制 300 字、清洗模型 `deepseek/deepseek-flash`、主人的两个私聊不限 |
 | `astrbot_plugin_face_convert` 等 8 个 | — | 本仓库 `plugin/`（已删） | **已合并** | face_convert、private_only、voice、sing、selfie、platform_hint、welcome、pat，合进上面的工具箱，旧目录不再用 |
 | `astrbot_plugin_group_followup` | v1.0.0 | 本仓库 `plugin/` | **停用** | 群聊续聊，现在交给陪伴插件 |
 | `astrbot_plugin_private_companion`（陪伴面板） | 6.5.6 | [menglimi/astrbot_plugin_private_companion](https://github.com/menglimi/astrbot_plugin_private_companion)（仓库未声明许可证） | 启用 | 生活日程、关系、主动消息、群聊续聊与读空气、TTS 增强 |
-| `meme_manager`（表情包） | 5.2.9 | [anka-afk/astrbot_plugin_meme_manager](https://github.com/anka-afk/astrbot_plugin_meme_manager)（MIT） | 启用 | 表情包图片；只改了一项：打开「表情使用频率」提示（`generation.prompt.quantity_guidance_enabled = true`，用它默认的「每约 4 条回复配 1 张图」），其余默认 |
+| `meme_manager`（表情包） | 5.2.10 | [anka-afk/astrbot_plugin_meme_manager](https://github.com/anka-afk/astrbot_plugin_meme_manager)（MIT） | 启用 | 表情包图片；改了两处：打开「表情使用频率」提示（`generation.prompt.quantity_guidance_enabled = true`，用它默认的「每约 4 条回复配 1 张图」）；2026-10-30 起开了自动收录（偷群里的表情包），见下面「偷表情包」 |
 | `astrbot_plugin_livingmemory` | 2.8.0 | [lxfight-s-Astrbot-Plugins/astrbot_plugin_livingmemory](https://github.com/lxfight-s-Astrbot-Plugins/astrbot_plugin_livingmemory)（AGPL-3.0） | **已卸载** | 长期记忆；要 Embedding 提供商，没配一直初始化失败，换成了下面的 `memory_companion` |
 | `astrbot_plugin_memory_companion`（我会牢牢记住你） | 1.10.5 | [menglimi/astrbot_plugin_memory_companion](https://github.com/menglimi/astrbot_plugin_memory_companion)（仓库未声明许可证） | 启用 | 长期记忆，陪伴插件作者的配套插件；2026-10-30 起开了向量检索和重排（阿里云百炼），其余默认 |
 | `astrbot_plugin_proactive_chat` | v1.2.6 | [Pancakes-Labs/astrbot_plugin_proactive_chat](https://github.com/Pancakes-Labs/astrbot_plugin_proactive_chat)（AGPL-3.0） | **已卸载** | 主动消息；和陪伴插件重复 |
@@ -37,6 +37,11 @@
   - 复读机：同一句话 2 分钟内连着出现 3 次时，跟读 50%、打断（发「禁止复读」）5%（默认 18% 和 10%）；没出手的话下一次复读两边各加 12%，中间插进别的话就重新计数，次数和主动插话共用每天 6 次。默认值下作者本机一个微信群一天里有 4 次复读，她出手 2 次都是打断，看着像没触发。
   - 读空气防互刷放宽到 120 秒内 6 条（默认 180 秒内 3 条）：默认值下她在群里回过两条，别人再喊「肥鱼」就要先过一个小模型判断（不看人格），常被判成沉默；回满三条后一律不回。
   - 回得快一点：群里热闹时的合并等待 8→3 秒（`group_high_intensity_merge_seconds`）、只喊一两个字时等补话 15→6 秒（`group_wakeup_short_text_wait_seconds`）、只发图片或表情包时等补话 8→4 秒（`image_message_debounce_seconds`）。按日志拆过：微信上从收到消息到发出回复中位约 7 秒，大头是这几种等待，不是连接器。代价是热闹时合并得少、可能多回几条。
+  - 偷表情包（2026-10-30，`meme_manager` 的自动收录）：群里大家爱发的表情包收进她的表情包库，从哪个群偷的只在哪个群里用。
+    - 每个允许回复的群建一个本地包 `stolen-<群号>`（名字「群里偷的表情包·群名」），分类和她原来用的包对齐（happy、sad、angry、confused、teasing、affection、shy、sleep、food、work、money、greeting），按情绪挑图时会一起算进去。
+    - `selection_rules.json` 给每个群加两条会话规则：目标写群号一条、写 `平台:GroupMessage:群号` 一条（插件收图时用的会话 ID 是群号，往提示里放分类时用的是后者），包顺序 `[stolen-<群号>, 原来的三个默认包]`。自动收录不指定目标包，就收进当前会话的第一个包，也就是这个群的偷图包；发图时从这几个包同一分类的图里随机挑，偷来的混在里面，用得少。私聊和其他群照旧只用默认包。
+    - 自动收录 `auto_collect`：`enabled` 开；看图模型 `aliyun/qwen3.8-flash`；`manual_review` 关（直接入包，分类拿不准的进待审核、不会被发出去）；`content_review_enabled` 开，提示词末尾加了一句「也拒绝收录：看起来是某个人自己的自拍或生活照（不是网上流传的表情包）、聊天记录截图、带二维码或联系方式的图片」；`scope` 只列这几个群（`group:群号`）；平台标了是表情的图（QQ）抽样 30%；每天最多识别 40 次。微信连接器给的表情包没有平台标记，插件当普通图片处理：第一次见只记下，第二次 45% 概率去识别，第八次一定识别（按图片内容的 sha256 数，每个包分开数），所以越多人发的越容易被偷。
+    - 收错了在表情包插件的网页面板里按包删。这些包和规则存在插件数据里，不在配置里，换机要重建。
   - 说话风格（2026-10-30）：默认语气 `basic_config.default_style` 从「温柔」改成「嘴硬俏皮」，跟人格对齐；已有的 26 个用户身上的「温柔」也一起改了（这个存在插件数据 `companions.json` 的 `users.*.style` 里，不在配置里，导出看不到，换机要在陪伴面板里改）。群聊表达学习 `memory_habit_config.expression_group_learning_source_mode` 从 `disabled` 改成 `all`：插件会把群里脱敏后的短说法、梗模板学下来，按场景用到她的回复里，发送前的表达审核（`enable_expression_style_review`）照旧开着。原来只从主人私聊学，攒了 33 条样本、一条规则都没学出来。
   - QQ 群引用框（2026-10-30）：`timer_config.quote_skip_short_reply_chars` 0→30，30 字以内的短回复不带引用框。插件开着「回复时引用触发消息」，原来 QQ 群里近一半回复都带引用框，短短一句也带，很像机器人；微信发不了引用，不受影响。
   - 私聊连发合并（2026-10-30）：`message_debounce_config.text_message_debounce_seconds` 0→5 秒。有人习惯一句话拆成几条连着发，原来每条都单独回（作者本机微信私聊两天里 29 次连发、16 次分两轮以上回）；连发间隔中位 3 秒、75% 在 5 秒内、九成在 10 秒内。改成每条私聊等 5 秒，5 秒内又来一条就接着等（最长 12 秒、最多合 8 条），合成一轮回；她回复途中又来的补话，插件会把没发出的那条作废，连同补话重新回。代价是私聊每条回复晚 5 秒左右。这个等待对群聊也有一点影响：同一个人在群里叫她以后、她回复途中又补的话，也会这样合进去。
