@@ -18,7 +18,7 @@
 | `astrbot_plugin_private_companion`（陪伴面板） | 6.5.6 | [menglimi/astrbot_plugin_private_companion](https://github.com/menglimi/astrbot_plugin_private_companion)（仓库未声明许可证） | 启用 | 生活日程、关系、主动消息、群聊续聊与读空气、TTS 增强 |
 | `meme_manager`（表情包） | 5.2.9 | [anka-afk/astrbot_plugin_meme_manager](https://github.com/anka-afk/astrbot_plugin_meme_manager)（MIT） | 启用 | 表情包图片；只改了一项：打开「表情使用频率」提示（`generation.prompt.quantity_guidance_enabled = true`，用它默认的「每约 4 条回复配 1 张图」），其余默认 |
 | `astrbot_plugin_livingmemory` | 2.8.0 | [lxfight-s-Astrbot-Plugins/astrbot_plugin_livingmemory](https://github.com/lxfight-s-Astrbot-Plugins/astrbot_plugin_livingmemory)（AGPL-3.0） | **已卸载** | 长期记忆；要 Embedding 提供商，没配一直初始化失败，换成了下面的 `memory_companion` |
-| `astrbot_plugin_memory_companion`（我会牢牢记住你） | 1.10.5 | [menglimi/astrbot_plugin_memory_companion](https://github.com/menglimi/astrbot_plugin_memory_companion)（仓库未声明许可证） | 启用 | 长期记忆，陪伴插件作者的配套插件；Embedding 可选，配置全默认 |
+| `astrbot_plugin_memory_companion`（我会牢牢记住你） | 1.10.5 | [menglimi/astrbot_plugin_memory_companion](https://github.com/menglimi/astrbot_plugin_memory_companion)（仓库未声明许可证） | 启用 | 长期记忆，陪伴插件作者的配套插件；2026-10-30 起开了向量检索和重排（阿里云百炼），其余默认 |
 | `astrbot_plugin_proactive_chat` | v1.2.6 | [Pancakes-Labs/astrbot_plugin_proactive_chat](https://github.com/Pancakes-Labs/astrbot_plugin_proactive_chat)（AGPL-3.0） | **已卸载** | 主动消息；和陪伴插件重复 |
 | `astrbot_plugin_dynamic_life_state` | v0.3.1 | [Hola-Gracias/astrbot_plugin_dynamic_life_state](https://github.com/Hola-Gracias/astrbot_plugin_dynamic_life_state)（AGPL-3.0） | **已卸载** | 生活时间线；和陪伴插件的日程重复，两份作息会打架 |
 
@@ -52,7 +52,8 @@
   - 同一天还关了 AstrBot 的 4 个内置技能（`data/skills.json` 里 documents、pdf、skill-creator、spreadsheets 的 `active` 改成 `false`）：它们要沙箱才能跑，本机 `computer_use_runtime` 是 `none`，用不了，可每次请求都带着约 3500 字说明。
   - MCP 工具（比如藏宝阁那 15 个）用这个办法停不掉：AstrBot 每次连上 MCP 服务都重新注册一遍，忘掉停用状态（`my_holdings` 一直在停用清单里，可每次请求照样带着）。要藏得在 MCP 服务那边处理。
   - `photo_action_config` 里把她的自拍设成人格参考图（`photo_reference_library` 一行是「图片路径 || 外观说明」），以后接上生图后端时用来保持长相。图片本身不在仓库里，换成你自己的。
-- 其他第三方插件（表情包、`memory_companion`）的配置都是默认值（表情包另开了「表情使用频率」提示，见上表）。
+- 其他第三方插件（表情包、`memory_companion`）的配置都是默认值（表情包另开了「表情使用频率」提示，见上表），只有下面这一处例外。
+- `memory_companion` 的向量检索（2026-10-30）：原来只按关键词找记忆，平均每次回复有 20 多条候选因为「关键词命中太弱」被挡掉（比如聊「吃火锅」找不到写成「去海底捞」的那条）。在 AstrBot「服务提供商」里加了阿里云百炼的 Embedding（`dashscope_embedding`，`qwen3.7-text-embedding-flash`，1024 维）和 Rerank（`bailian_rerank`，`qwen3.7-text-rerank`），插件配置里 `retrieval.embedding_enabled` 打开，`retrieval.embedding_provider_id`、`retrieval.rerank_provider_id` 填这两个 ID，其余检索参数默认（相似度门槛 0.34：这个模型下不相关的两句也有 0.39 左右，靠重排把不相关的筛掉）。存量记忆由插件后台每 5 分钟补 50 条向量。密钥只在本机 AstrBot 里。
 - **`memory_companion` 有一处本地改动（2026-10-29，插件升级会被覆盖，升级后要重新改）**：`core/summarizer.py` 的 `summary_quality` 里，总结只要出现「某用户、某人、有人、群成员」这类词就判成低质量、进不了长期记忆；但它按字面找「有人」，「没有人」「所有人」也会被拦。微信群两天里 134 次被拒全是这条，约三分之一（46 条）是这么误判的。改法：查这些词之前，先把「没有人」「所有人」「只有人」「有人气」从总结里去掉再查，其余规则不动。这个问题还没提给作者。
 - **AstrBot 在跑的时候，别在 macOS 本机直接打开 `data/` 下的 SQLite 库**（`data_v4.db`、插件的 `.db`），只读也不行：这些库是 WAL 模式，锁和共享内存跨不过 Docker Desktop 的虚拟机，本机一关库就可能把容器正在写的 WAL 截掉。2026-10-30 这样坏过一次 `data_v4.db` 的定时任务表。要看就 `docker cp` 一份出来看拷贝，要改就先停 AstrBot。
 - 本仓库自己的插件：各插件目录下的 `config.example.json` 复制成 `config.json`。`astrbot_plugin_selfie` 的照片放进 `data/plugin_data/astrbot_plugin_selfie/photos/`。
