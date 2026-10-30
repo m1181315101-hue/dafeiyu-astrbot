@@ -387,7 +387,7 @@ def test_image_repeat_follows_three_in_a_row():
 
     ir_mod = mod("image_repeat")
 
-    async def fake_fetch(image):
+    async def fake_fetch(image, raw_url=""):
         return b"GIF89a-fake"
 
     md5 = "0123456789abcdef0123456789ABCDEF"
@@ -419,6 +419,50 @@ def test_image_repeat_follows_three_in_a_row():
     strict.fetch = fake_fetch
     assert [run(x, [sticker()], group="4", gate=strict) for x in "aab"] == [False, False, False]  # 要不同的人：a 连发两次不够
     assert run("c", [sticker()], group="4", gate=strict) is True
+
+
+def test_image_repeat_reads_raw_md5_and_local_files(tmp_path):
+    """AstrBot 会把图片段的 file、url、path 都换成本地临时文件「media_image_随机串.jpg」：
+    先认原始消息里的 md5 文件名，没有就按本地文件内容算"""
+    from astrbot.core.message.components import Image
+
+    ir = mod("image_repeat").ImageRepeat({"min_count": 3, "probability": 100, "cooldown_minutes": 0})
+    md5 = "fedcba9876543210fedcba9876543210"
+
+    def local(name, data):
+        path = tmp_path / name
+        path.write_bytes(data)
+        return Image(file=str(path), url=str(path), path=str(path))
+
+    def wechat_sticker(n):
+        event = ImageEvent("a", [local(f"media_image_{n:017x}_abcd.jpg", b"JPEG-" + bytes([n]))])
+        event.message_obj = SimpleNamespace(raw_message={"message": [
+            {"type": "image", "data": {"file": f"{md5}.gif", "url": f"http://cdn.example/stodownload?filekey={n}"}}]})
+        return event
+
+    keys = {ir.image_of(wechat_sticker(n))[0] for n in range(3)}
+    assert keys == {md5}  # 本地临时文件名每次不一样、内容也可能不一样，认的是原始 md5
+    a = ir.image_of(ImageEvent("a", [local("media_image_00000000000000001_aaaa.jpg", b"same")]))[0]
+    b = ir.image_of(ImageEvent("a", [local("media_image_00000000000000002_bbbb.jpg", b"same")]))[0]
+    c = ir.image_of(ImageEvent("a", [local("media_image_00000000000000003_cccc.jpg", b"other")]))[0]
+    assert a == b != c and a.startswith("sha1:")  # 没有原始数据时按内容认，随机文件名不会被当成 md5
+
+    ImageEvent.sent = []
+    assert [asyncio.run(ir.observe(wechat_sticker(n))) for n in range(3)] == [False, False, True]
+    assert len(ImageEvent.sent) == 1  # 发的是本地临时文件里的原图，不用再下载
+
+
+def test_image_repeat_sends_static_as_gif_on_wechat():
+    import io
+
+    from PIL import Image as PILImage
+
+    ir_mod = mod("image_repeat")
+    png = io.BytesIO()
+    PILImage.new("RGBA", (500, 400), (255, 0, 0, 128)).save(png, "PNG")
+    gif = ir_mod.as_gif(png.getvalue())
+    assert gif.startswith(b"GIF") and max(PILImage.open(io.BytesIO(gif)).size) <= 360
+    assert ir_mod.as_gif(b"not an image") == b""
 
 
 def test_face_normalizes_punctuation_like_before():
