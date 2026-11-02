@@ -48,6 +48,47 @@
       "daily_limit": {"description": "每个群每天最多跟几次", "type": "int", "default": 5, "hint": "0 表示不限。"}
     }
   },
+  "cron_guard": {
+    "description": "定时任务把关",
+    "type": "object",
+    "hint": "AstrBot 跑定时任务（她用 future_task 建的）时，会把那个会话存着的整段聊天记录都发给模型，别的插件的裁剪管不到；群里记录一长，每跑一次就是几十万 token。这里让定时任务最多带最近几轮上下文，还可以只让主人建定时任务。",
+    "items": {
+      "enabled": {"description": "启用", "type": "bool", "default": true},
+      "keep_turns": {"description": "定时任务最多带几轮上下文", "type": "int", "default": 8, "hint": "照 AstrBot 自己的算法，一问一答两条算一轮；中间调工具多的轮占的条数多，实际带的轮数会更少。0 表示不截，照原样整段带上。只改这一次请求，存着的聊天记录不动。"},
+      "owner_only": {"description": "只有主人能让她建定时任务", "type": "bool", "default": false, "hint": "打开后，别人让她定时提醒、定时盯盘，她会直说得找主人。主人：AstrBot 管理员，加上「表情转换与收信翻译」一节的「主人的号」。已经建好的任务照跑，要停或改去 AstrBot 面板。"}
+    }
+  },
+  "cron_gate": {
+    "description": "盯盘预检",
+    "type": "object",
+    "hint": "盯盘的定时任务每跑一次都要叫她调好几回模型，可大多数时候查完是空的。打开后，规则里列出的任务开跑前，先不经过模型把它要查的 MCP 工具调一遍，从返回的文字里认编号：都见过就不叫她，有新的才照原样叫她。第一次照常叫她一次，跑完记下当底；查不成或认不出编号就照原样叫她。面板里「立即运行」也走这道预检。",
+    "items": {
+      "enabled": {
+        "description": "启用",
+        "type": "bool",
+        "default": false,
+        "hint": "填了规则才起作用。会在 AstrBot 的定时任务管理器上套一层，插件停用时拆掉。"
+      },
+      "rules": {
+        "description": "要预检的定时任务",
+        "type": "text",
+        "default": "",
+        "hint": "一段 JSON。键是定时任务的 ID（job_id），值写开跑前先调哪些工具、怎么认编号，比如 {\"任务 ID\": {\"calls\": [{\"server\": \"MCP 服务名\", \"tool\": \"search_items\", \"args\": {\"limit\": 30}}], \"key\": \"编号[A-Z]\\\\d{4,}\"}}。server 不写就按工具名找；key 是认编号的正则，不写就是「一个大写字母加四位以上数字」。编号在不同商品里会重复的话，key 里把商品名也带上。"
+      },
+      "keep_days": {
+        "description": "见过的编号记几天",
+        "type": "int",
+        "default": 30,
+        "hint": "这么多天没再出现的编号就忘掉，再出现时当新的。"
+      },
+      "timeout_seconds": {
+        "description": "每次查工具最多等几秒",
+        "type": "int",
+        "default": 60,
+        "hint": "等不到就照原样叫她。"
+      }
+    }
+  },
   "platform_hint": {
     "description": "平台提示",
     "type": "object",

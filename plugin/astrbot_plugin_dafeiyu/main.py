@@ -1,5 +1,5 @@
-"""大肥鱼工具箱：我们自己写的 8 个小插件合成一个，再加上「引用她又 @ 别人」的指向说明、群里回短点、每日说话习惯自检、图片复读，
-和从 AstrNa 搬来的 3 个可选功能。
+"""大肥鱼工具箱：我们自己写的 8 个小插件合成一个，再加上「引用她又 @ 别人」的指向说明、群里回短点、每日说话习惯自检、图片复读、定时任务把关、
+盯盘预检，和从 AstrNa 搬来的 3 个可选功能。
 
 一个功能一个模块（modules/、astrna/），各有开关，都在 AstrBot 面板的插件配置里改；面板里保存会自动重载插件。
 这里只做三件事：按开关把模块建起来、把 AstrBot 的钩子接给对应模块、插件停用时把 AstrNa 的运行时补丁拆掉。
@@ -18,6 +18,8 @@ from astrbot.api.star import Context, Star, register
 from astrbot.core.utils.astrbot_path import get_astrbot_data_path
 
 from .modules import voice as voice_cmds
+from .modules.cron_gate import CronGate
+from .modules.cron_guard import CronGuard
 from .modules.face import FaceConvert
 from .modules.group_brevity import GroupBrevity
 from .modules.habit_check import HabitCheck
@@ -39,8 +41,8 @@ OFF_TOOL_TEXT = "这个功能现在关着。用一句话跟对方说现在做不
 @register(
     "astrbot_plugin_dafeiyu",
     "m1181315101-hue",
-    "大肥鱼工具箱：只回私聊、引用她又 @ 别人时说明在跟谁说、群里回短点、说话习惯自检、图片复读、平台提示、表情转换、拍一拍、新人欢迎、发照片、唱歌、发语音，外加 AstrNa 的三个可选功能",
-    "1.5.6",
+    "大肥鱼工具箱：只回私聊、引用她又 @ 别人时说明在跟谁说、群里回短点、说话习惯自检、图片复读、定时任务把关、盯盘预检、平台提示、表情转换、拍一拍、新人欢迎、发照片、唱歌、发语音，外加 AstrNa 的三个可选功能",
+    "1.7.0",
 )
 class DafeiyuToolkit(Star):
     def __init__(self, context: Context, config: dict | None = None):
@@ -51,6 +53,9 @@ class DafeiyuToolkit(Star):
         self.group_brevity = self._build("group_brevity", GroupBrevity)
         self.habit_check = self._build("habit_check", self._make_habit_check)
         self.image_repeat = self._build("image_repeat", ImageRepeat)
+        self.cron_guard = self._build("cron_guard", self._make_cron_guard)
+        # 默认关：要填规则，还要在 AstrBot 的定时任务管理器上套一层
+        self.cron_gate = self._build("cron_gate", self._make_cron_gate, default=False)
         self.platform_hint = self._build("platform_hint", PlatformHint)
         self.face = self._build("face", lambda c: FaceConvert(context, c))
         self.pat = self._build("pat", lambda c: Pat(context, c))
@@ -68,8 +73,8 @@ class DafeiyuToolkit(Star):
         self.tool_history = self._build("tool_history", self._make_tool_history, default=False)
         self.output_limit = self._build("output_limit", self._make_output_limit, default=False)
         on = [name for name in ("private_only", "reply_direction", "group_brevity", "habit_check", "image_repeat",
-                                "platform_hint", "face", "pat", "welcome", "selfie", "sing", "voice",
-                                "preamble", "tool_history", "output_limit") if getattr(self, name) is not None]
+                                "cron_guard", "cron_gate", "platform_hint", "face", "pat", "welcome", "selfie", "sing",
+                                "voice", "preamble", "tool_history", "output_limit") if getattr(self, name) is not None]
         logger.info(f"[dafeiyu] 开着的功能：{'、'.join(on) or '无'}")
 
     def _section(self, name: str) -> dict:
@@ -93,6 +98,19 @@ class DafeiyuToolkit(Star):
         module = HabitCheck(cfg, os.path.join(data, "data_v4.db"),
                             os.path.join(data, "plugin_data", "astrbot_plugin_dafeiyu", "habit_notes.json"))
         module.start()
+        return module
+
+    def _make_cron_guard(self, cfg: dict):
+        try:
+            admins = self.context.get_config().get("admins_id") or []
+        except Exception:  # noqa: BLE001 - 读不到管理员名单就只认「主人的号」
+            admins = []
+        return CronGuard(cfg, self._section("face").get("owner_ids"), admins)
+
+    def _make_cron_gate(self, cfg: dict):
+        path = os.path.join(get_astrbot_data_path(), "plugin_data", "astrbot_plugin_dafeiyu", "cron_gate_seen.json")
+        module = CronGate(self.context, cfg, path)
+        module.install()
         return module
 
     @staticmethod
@@ -133,6 +151,8 @@ class DafeiyuToolkit(Star):
     async def terminate(self):
         if self.habit_check is not None:
             self.habit_check.terminate()
+        if self.cron_gate is not None:
+            self.cron_gate.terminate()
         # 过场白门卫要在第一个 await 前停用，免得卸载后还在扣字（AstrNa 的做法）
         for module in (self.preamble, self.tool_history):
             if module is not None:
@@ -200,6 +220,17 @@ class DafeiyuToolkit(Star):
         for module in (self.group_brevity, self.habit_check):
             if module is not None:
                 await module.add_hint(event, req)
+
+    # 定时任务不经过 on_llm_request：在 agent 开跑时截上下文
+    @filter.on_agent_begin()
+    async def cron_trim(self, event: AstrMessageEvent, run_context):
+        if self.cron_guard is not None:
+            self.cron_guard.trim(event, run_context)
+
+    @filter.on_llm_request()
+    async def cron_owner_only(self, event: AstrMessageEvent, req):
+        if self.cron_guard is not None:
+            await self.cron_guard.guard_tool(event, req)
 
     @filter.on_llm_response(priority=1)
     async def face_scrub(self, event: AstrMessageEvent, response):

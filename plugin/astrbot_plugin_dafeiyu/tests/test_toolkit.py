@@ -470,6 +470,242 @@ def test_face_normalizes_punctuation_like_before():
     assert face_mod.FaceConvert._normalize_punctuation("好、但是「不行」") == "好，但是“不行”"
 
 
+# ---------------- 定时任务把关 ----------------
+
+class CronEvent:
+    def __init__(self, platform_name="cron", platform="wechat", sender="", admin=False):
+        self.platform_name, self.platform, self.sender, self.admin = platform_name, platform, sender, admin
+
+    def get_platform_name(self):
+        return self.platform_name
+
+    def get_platform_id(self):
+        return self.platform
+
+    def get_sender_id(self):
+        return self.sender
+
+    def is_admin(self):
+        return self.admin
+
+
+def test_cron_guard_defaults_match_schema():
+    cg = mod("cron_guard").CronGuard({})
+    d = defaults("cron_guard")
+    assert (cg.keep_turns, cg.owner_only) == (d["keep_turns"], d["owner_only"])
+
+
+def test_cron_guard_trims_only_scheduled_runs():
+    from astrbot.core.agent.message import Message
+
+    def run():
+        msgs = [Message(role="system", content="人设")]
+        for i in range(20):
+            msgs += [Message(role="user", content=f"问{i}"), Message(role="assistant", content=f"答{i}")]
+        msgs.append(Message(role="user", content="定时任务到点了"))
+        return SimpleNamespace(messages=msgs)
+
+    cg = mod("cron_guard").CronGuard({"keep_turns": 8})
+    scheduled = run()
+    assert cg.trim(CronEvent(), scheduled) is True
+    kept = [m.content for m in scheduled.messages]
+    assert kept[0] == "人设" and kept[-1] == "定时任务到点了"
+    assert "答19" in kept and "问0" not in kept
+    assert sum(m.role == "user" for m in scheduled.messages) <= 8
+    chat = run()
+    assert cg.trim(CronEvent(platform_name="aiocqhttp"), chat) is False and len(chat.messages) == 42
+    assert mod("cron_guard").CronGuard({"keep_turns": 0}).trim(CronEvent(), run()) is False
+
+
+def test_cron_guard_leaves_future_task_to_owners_only():
+    from astrbot.core.agent.tool import FunctionTool, ToolSet
+
+    def req():
+        tools = ToolSet()
+        for name in ("future_task", "send_selfie"):
+            tools.add_tool(FunctionTool(name=name, description=name, parameters={"type": "object", "properties": {}}))
+        return SimpleNamespace(func_tool=tools, extra_user_content_parts=[])
+
+    cg = mod("cron_guard").CronGuard({"owner_only": True}, owner_ids=["wechat:10001", "20002"], admins=["astrbot"])
+    stranger = req()
+    assert asyncio.run(cg.guard_tool(CronEvent(platform_name="wechat", sender="30003"), stranger)) is True
+    assert stranger.func_tool.get_tool("future_task") is None and stranger.func_tool.get_tool("send_selfie") is not None
+    assert len(stranger.extra_user_content_parts) == 1 and "主人" in stranger.extra_user_content_parts[0].text
+    for owner in (CronEvent(platform="wechat", sender="10001"), CronEvent(platform="default", sender="20002"),
+                  CronEvent(sender="99", admin=True), CronEvent(sender="astrbot")):
+        r = req()
+        assert asyncio.run(cg.guard_tool(owner, r)) is False and r.func_tool.get_tool("future_task") is not None
+    off = req()
+    assert asyncio.run(mod("cron_guard").CronGuard({}).guard_tool(CronEvent(sender="30003"), off)) is False
+    assert off.func_tool.get_tool("future_task") is not None
+
+
+# ---------------- 盯盘预检 ----------------
+
+class FakeCronManager:
+    def __init__(self, fail=0):
+        self.ran, self.fail = [], fail
+
+    async def _run_active_agent_job(self, job, start_time=None):
+        self.ran.append(job.job_id)
+        if self.fail:
+            self.fail -= 1
+            raise RuntimeError("模型挂了")
+
+
+class FakeMCPClient:
+    """按顺序吐出准备好的返回；最后一个一直重复。Exception 就当调用出错"""
+
+    def __init__(self, replies):
+        self.replies, self.calls = list(replies), []
+
+    async def call_tool_with_reconnect(self, tool_name, arguments, read_timeout_seconds):
+        self.calls.append((tool_name, arguments))
+        reply = self.replies.pop(0) if len(self.replies) > 1 else self.replies[0]
+        if isinstance(reply, Exception):
+            raise reply
+        return SimpleNamespace(isError=False, content=[SimpleNamespace(type="text", text=reply)])
+
+
+def gate_setup(tmp_path, replies, fail=0, rules=None):
+    client = FakeMCPClient(replies)
+    tools = SimpleNamespace(mcp_client_dict={"market": client}, get_func=lambda name: None)
+    ctx = SimpleNamespace(cron_manager=FakeCronManager(fail), get_llm_tool_manager=lambda: tools)
+    rules = rules or {"job-aaaa-1111": {"calls": [{"server": "market", "tool": "search_items", "args": {"limit": 30}}],
+                                        "key": "编号[A-Z]\\d{4,}"}}
+    gate = mod("cron_gate").CronGate(ctx, {"rules": json.dumps(rules)}, str(tmp_path / "seen.json"))
+    assert gate.install() is True
+    return gate, ctx, client
+
+
+EMPTY = "在场挂单 0 件（本次返回前 0 件）\n（没有符合条件的在场挂单）"
+ONE = "在场挂单 1 件\n谪星·甲 | 编号Y000001 | ¥100.00"
+TWO = ONE + "\n谪星·甲 | 编号Y000002 | ¥120.00"
+JOB = SimpleNamespace(job_id="job-aaaa-1111")
+
+
+def run_job(ctx, job=JOB):
+    return ctx.cron_manager._run_active_agent_job(job, start_time="t")
+
+
+def test_cron_gate_defaults_match_schema(tmp_path):
+    gate = mod("cron_gate").CronGate(SimpleNamespace(), {}, str(tmp_path / "seen.json"))
+    d = defaults("cron_gate")
+    assert gate.rules == {} and d["rules"] == ""
+    assert (gate.keep_seconds, gate.timeout) == (d["keep_days"] * 86400, d["timeout_seconds"])
+    assert gate.install() is False, "没有规则就不接"
+
+
+def test_cron_gate_wakes_her_only_for_new_numbers(tmp_path):
+    gate, ctx, client = gate_setup(tmp_path, [ONE, ONE, TWO, TWO, EMPTY])
+
+    async def scenario():
+        await run_job(ctx)  # 第一次照常叫她一次，跑完记底
+        assert ctx.cron_manager.ran == ["job-aaaa-1111"]
+        await run_job(ctx)  # 都见过
+        assert len(ctx.cron_manager.ran) == 1
+        await run_job(ctx)  # 多了一件，叫她
+        assert len(ctx.cron_manager.ran) == 2
+        await run_job(ctx)  # 那件已经叫过了
+        await run_job(ctx)  # 一件都没有
+        assert len(ctx.cron_manager.ran) == 2
+        await run_job(ctx, SimpleNamespace(job_id="other-job"))  # 规则外的任务照原样跑，不查
+        assert ctx.cron_manager.ran[-1] == "other-job"
+
+    asyncio.run(scenario())
+    assert len(client.calls) == 5 and client.calls[0] == ("search_items", {"limit": 30})
+    again = mod("cron_gate").CronGate(SimpleNamespace(), {}, str(tmp_path / "seen.json"))
+    assert set(again.seen["job-aaaa-1111"]) == {"编号Y000001", "编号Y000002"}, "重启以后还记得"
+
+
+def test_cron_gate_wakes_her_when_unsure(tmp_path):
+    for i, replies in enumerate(([ConnectionError("连不上")], ["- 11-02 一行看不懂的列表"])):
+        gate, ctx, _ = gate_setup(tmp_path / f"case{i}", replies)
+        asyncio.run(run_job(ctx))
+        assert ctx.cron_manager.ran == ["job-aaaa-1111"], replies
+        assert gate.seen == {}, "查不成、认不出都不记底"
+    rules = {"job-aaaa-1111": {"calls": [{"server": "gone", "tool": "search_items"}]}}
+    gate, ctx, _ = gate_setup(tmp_path / "gone", [ONE], rules=rules)
+    asyncio.run(run_job(ctx))
+    assert ctx.cron_manager.ran == ["job-aaaa-1111"], "MCP 服务没接上也照常叫她"
+
+    async def broken(job_id, rule):
+        raise KeyError("预检自己的毛病")
+
+    gate, ctx, _ = gate_setup(tmp_path / "broken", [ONE])
+    gate.precheck = broken
+    asyncio.run(run_job(ctx))
+    assert ctx.cron_manager.ran == ["job-aaaa-1111"] and gate.seen == {}, "预检自己出错也照常叫她"
+
+
+def test_cron_gate_retries_when_her_run_fails(tmp_path):
+    gate, ctx, _ = gate_setup(tmp_path, [EMPTY, EMPTY, EMPTY, TWO, TWO], fail=1)
+
+    async def scenario():
+        with pytest.raises(RuntimeError):
+            await run_job(ctx)  # 第一次叫了她，但她那次跑失败了：不记底
+        assert gate.seen == {}
+        await run_job(ctx)  # 还算第一次，再叫；一件都没有也要留下记录
+        assert gate.seen == {"job-aaaa-1111": {}}
+        await run_job(ctx)  # 这回不算第一次了
+        assert len(ctx.cron_manager.ran) == 2
+        ctx.cron_manager.fail = 1
+        with pytest.raises(RuntimeError):
+            await run_job(ctx)  # 有新的，叫了她，又失败了
+        assert gate.seen["job-aaaa-1111"] == {}
+        await run_job(ctx)  # 下一次还叫
+        assert len(ctx.cron_manager.ran) == 4 and set(gate.seen["job-aaaa-1111"]) == {"编号Y000001", "编号Y000002"}
+
+    asyncio.run(scenario())
+
+
+def test_cron_gate_skips_bad_rules_and_uninstalls_cleanly(tmp_path):
+    with pytest.raises(ValueError):
+        mod("cron_gate").parse_rules("[1, 2]")
+    rules = mod("cron_gate").parse_rules(json.dumps({"good": {"calls": [{"tool": "t"}]}, "bad": {"calls": []},
+                                                     "worse": {"calls": [{"tool": "t"}], "key": "("}}))
+    assert list(rules) == ["good"]
+    first, ctx, _ = gate_setup(tmp_path, [ONE])
+    second = mod("cron_gate").CronGate(ctx, {"rules": json.dumps({"good": {"calls": [{"tool": "t"}]}})},
+                                       str(tmp_path / "seen2.json"))
+    second.install()  # 上一个没拆就又装：不套两层
+    original = getattr(ctx.cron_manager._run_active_agent_job, mod("cron_gate").ORIGINAL)
+    assert getattr(original, "__func__", None) is FakeCronManager._run_active_agent_job
+    second.terminate()
+    assert "_run_active_agent_job" not in vars(ctx.cron_manager), "拆掉以后回到类上的方法"
+    first.terminate()  # 已经被换掉了，什么都不动
+    assert "_run_active_agent_job" not in vars(ctx.cron_manager)
+
+
+def test_cron_gate_sits_in_front_of_real_cron_manager(tmp_path):
+    """套在真的 CronJobManager 上：_run_job 跑到的是这一层；没叫她时任务照样记「已完成」"""
+    from astrbot.core.cron.manager import CronJobManager
+
+    class FakeDB:
+        def __init__(self):
+            self.updates = []
+
+        async def get_cron_job(self, job_id):
+            return SimpleNamespace(job_id=job_id, enabled=True, job_type="active_agent", run_once=False, payload={})
+
+        async def update_cron_job(self, job_id, **kwargs):
+            self.updates.append(kwargs)
+
+    manager = CronJobManager(FakeDB())
+    client = FakeMCPClient([ONE])
+    (tmp_path / "seen.json").write_text(json.dumps({"job-aaaa-1111": {"Y000001": 1e12}}), encoding="utf-8")
+    tools = SimpleNamespace(mcp_client_dict={"market": client}, get_func=lambda name: None)
+    ctx = SimpleNamespace(cron_manager=manager, get_llm_tool_manager=lambda: tools)
+    rules = {"job-aaaa-1111": {"calls": [{"server": "market", "tool": "search_items"}]}}
+    gate = mod("cron_gate").CronGate(ctx, {"rules": json.dumps(rules)}, str(tmp_path / "seen.json"))
+    assert gate.install() is True
+    asyncio.run(manager._run_job("job-aaaa-1111"))  # 记过底了，都见过：不叫她
+    assert client.calls == [("search_items", {})]
+    assert manager.db.updates[-1]["status"] == "completed" and manager.db.updates[-1]["last_error"] is None
+    gate.terminate()
+    assert "_run_active_agent_job" not in vars(manager)
+
+
 # ---------------- 主入口 ----------------
 
 def build(config):
@@ -480,10 +716,11 @@ def build(config):
 
 def test_toolkit_defaults_build_our_modules_and_skip_astrna():
     kit, ctx = build({})
-    for name in ("reply_direction", "group_brevity", "habit_check", "image_repeat", "platform_hint", "face",
-                 "pat", "welcome", "selfie", "sing", "voice"):
+    for name in ("reply_direction", "group_brevity", "habit_check", "image_repeat", "cron_guard", "platform_hint",
+                 "face", "pat", "welcome", "selfie", "sing", "voice"):
         assert getattr(kit, name) is not None, name
     assert kit.private_only is None, "只回私聊默认关"
+    assert kit.cron_gate is None, "盯盘预检默认关"
     assert kit.preamble is None and kit.tool_history is None and kit.output_limit is None
     assert ctx.unregistered == []
     assert not any(m.startswith(f"{PKG}.astrna") for m in sys.modules), "开关关着时不该导入 AstrNa 的代码"

@@ -21,7 +21,7 @@
   "private_followup_config.group_air_guard_window_seconds": 120,
   "private_followup_config.group_air_guard_max_bot_replies": 6,
   "timer_config.enable_proactive_quote_trigger_message": true,
-  "news_config.enable_news_integration": true,
+  "news_config.enable_news_integration": false,
   "web_exploration_config.enable_web_exploration": true,
   "web_exploration_config.enable_news_daily_hot_read": false,
   "group_observation_config.group_whitelist_ids": [
@@ -65,5 +65,6 @@
   "group_wakeup_config.group_wakeup_short_text_wait_seconds": 6.0,
   "group_high_intensity_config.group_high_intensity_merge_seconds": 3,
   "group_high_intensity_config.enable_group_high_intensity_mode": false,
-  "model_fallback_overrides": "{\"PLUGIN_VISION_PROVIDER_ID\": \"deepseek/deepseek-flash\"}"
+  "model_fallback_overrides": "{\"PLUGIN_VISION_PROVIDER_ID\": \"deepseek/deepseek-flash\"}",
+  "news_config.enable_ai_daily_watch": false
 }
